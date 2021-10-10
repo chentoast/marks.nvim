@@ -42,7 +42,8 @@ function Mark:register_mark(mark, line, col)
     utils.add_sign(bufnr, mark, line, id)
   end
 
-  if not utils.is_lower(mark) then
+  if not utils.is_lower(mark) or
+      mark:byte() > buffer.lowest_available_mark:byte() then
     return
   end
 
@@ -116,7 +117,6 @@ function Mark:delete_mark(mark, clear)
   buffer.placed_marks[mark] = nil
 
   if utils.is_special(mark) then
-    -- don't adjust lowest_available_mark when deleting builtin marks
     return
   end
 
@@ -129,6 +129,11 @@ function Mark:delete_mark(mark, clear)
     vim.cmd("wshada!")
   end
 
+  if utils.is_upper(mark) then
+    return
+  end
+
+  -- only adjust lowest_available_mark if it is lowercase
   if mark:byte() < buffer.lowest_available_mark:byte() then
     buffer.lowest_available_mark = mark
   end
