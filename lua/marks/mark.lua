@@ -329,7 +329,6 @@ end
 
 function Mark:on_load()
   local bufnr = a.nvim_get_current_buf()
-  print("on load")
   if not self.buffers[bufnr] then
     self.buffers[bufnr] = { placed_marks = {}, 
                          marks_by_line = {},
