@@ -136,7 +136,7 @@ The following are the available keys of the mapping table (see above as well):
                                                                 *marks-leader*
 By default, marks.nvim mappings are namespaced with a leader key.
 For example, the default leader is "m", which allows you to use "m" to set
-marks, preview, and move.
+marks, preview, and move, without any pauses due to vim's mapping resolution.
 Changing the leader key will change the prefix of all the mappings above.
 Note that the prefix mappings can only be one key long.
 
@@ -194,6 +194,28 @@ which will disable this behavior.
     }
 <
   will allow you to use both "m]" and "]]" to go to the next mark.
+
+Alternatively, <Plug> mappings are provided by marks.nvim, allowing you
+to map keybindings outside of the `setup` function.
+
+The following <Plug> mappings are provided (see above for more details
+on the functionality of each mapping):
+
+    <Plug>(Marks-set)
+    <Plug>(Marks-setnext)
+    <Plug>(Marks-toggle)
+    <Plug>(Marks-delete)
+    <Plug>(Marks-deleteline)
+    <Plug>(Marks-deletebuf)
+    <Plug>(Marks-preview)
+    <Plug>(Marks-next)
+    <Plug>(Marks-prev)
+
+  Example:
+
+    `nmap n <Plug>(Marks-set)`
+
+  Means that setting mark "a" is done with "na".
 
 ==============================================================================
 4. Highlights and Commands                                       *marks-cmds*
