@@ -11,11 +11,9 @@ local movement_marks = { ["`"] = true, ["'"] = true,
                         ["]"] = true }
 
 function M.add_sign(bufnr, text, line, id)
-  if text == "{ " then
-    print(vim.inspect(debug.traceback()))
-  end
   local sign_name = "Marks_" .. text
   if not M.sign_cache[sign_name] then
+    M.sign_cache[sign_name] = true
     vim.fn.sign_define(sign_name, { text = text, texthl = "MarkSignHL",
                                     numhl = "MarkSignNumHL" })
   end
@@ -30,10 +28,6 @@ function M.remove_buf_signs(bufnr)
   vim.fn.sign_unplace("MarkSigns", { buffer = bufnr })
 end
 
-function M.view_signs()
-  print(vim.inspect(vim.fn.sign_getdefined()))
-end
-
 function M.is_valid_mark(char)
   return M.is_letter(char) or builtin_marks[char]
 end
@@ -43,8 +37,7 @@ function M.is_special(char)
 end
 
 function M.is_letter(char)
-  return (65 <= char:byte() and char:byte() <= 90) or
-    (97 <= char:byte() and char:byte() <= 122)
+  return M.is_upper(char) or M.is_lower(char)
 end
 
 function M.is_upper(char)

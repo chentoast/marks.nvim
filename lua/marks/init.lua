@@ -4,8 +4,14 @@ local M = {}
 
 -- exposed functions for users, in case they want to map these directly
 
-function M.main()
-  local input = string.char(vim.fn.getchar())
+function M.prefix()
+  local err, input = pcall(function()
+    return string.char(vim.fn.getchar())
+  end)
+  if not err then
+    return
+  end
+
   if M.key_table[input] then
     return M[M.key_table[input]]()
   end
@@ -17,20 +23,31 @@ function M.main()
   end
 end
 
-function M.delete_main()
-  local input = string.char(vim.fn.getchar())
-  if utils.is_valid_mark(input) then
-    M.mark_state:delete_mark(input)
+function M.delete_prefix()
+  local err, input = pcall(function()
+    return string.char(vim.fn.getchar())
+  end)
+  if not err then
     return
   end
 
   if M.key_table[input] then
     M[M.key_table[input]]()
   end
+
+  if utils.is_valid_mark(input) then
+    M.mark_state:delete_mark(input)
+    return
+  end
 end
 
 function M.set()
-  local input = string.char(vim.fn.getchar())
+  local err, input = pcall(function()
+    return string.char(vim.fn.getchar())
+  end)
+  if not err then
+    return
+  end
 
   if utils.is_valid_mark(input) then
     M.mark_state:place_mark_cursor(input)
@@ -47,7 +64,13 @@ function M.toggle()
 end
 
 function M.delete()
-  local input = string.char(vim.fn.getchar())
+  local err, input = pcall(function()
+    return string.char(vim.fn.getchar())
+  end)
+  if not err then
+    return
+  end
+
   if utils.is_valid_mark(input) then
     M.mark_state:delete_mark(input)
     return
@@ -75,14 +98,13 @@ function M.prev()
 end
 
 function M.refresh()
-  M.mark_state:delete_buf_marks()
   M.mark_state:on_load()
 end
 
 
 local function default_mappings()
-  vim.cmd"nnoremap <silent> m <cmd>lua require'marks'.main()<cr>"
-  vim.cmd"nnoremap <silent> dm <cmd>lua require'marks'.delete_main()<cr>"
+  vim.cmd"nnoremap <silent> m <cmd>lua require'marks'.prefix()<cr>"
+  vim.cmd"nnoremap <silent> dm <cmd>lua require'marks'.delete_prefix()<cr>"
   M.key_table = {
     [","] = "set_next",
     [";"] = "toggle",
@@ -108,8 +130,8 @@ local function prefix_mappings(config)
     -- remove the previously set default mappings
     vim.cmd("nunmap m")
     vim.cmd("nunmap dm")
-    vim.cmd("nnoremap <silent> "..leader.." <cmd>lua require'marks'.main()<cr>")
-    vim.cmd("nnoremap <silent> d"..leader.." <cmd>lua require'marks'.delete_main()<cr>")
+    vim.cmd("nnoremap <silent> "..leader.." <cmd>lua require'marks'.prefix()<cr>")
+    vim.cmd("nnoremap <silent> d"..leader.." <cmd>lua require'marks'.delete_prefix()<cr>")
   end
 
   -- if the user mapped the defaults in addition to specifying mappings,
@@ -130,7 +152,7 @@ local function prefix_mappings(config)
   for cmd, key in pairs(config.mappings) do
       -- prefix mappings ignore 'set' and 'delete',
       -- since those are only for use as non-prefix mappings.
-      -- these are handled instead by 'main' and 'delete_main'
+      -- these are handled instead by 'prefix' and 'delete_prefix'
     if cmd ~= "leader" and cmd ~= "set" and cmd ~= "delete" then
       M.key_table[key] = cmd
     end
@@ -189,9 +211,9 @@ function M.setup(config)
   setup_mappings(config)
   setup_autocommands(M.mark_state)
 
-  M.mark_state.signs = utils.option_nil(config.signs, true)
-  M.mark_state.force_write_shada = utils.option_nil(config.force_write_shada, false)
-  M.mark_state.cyclic = utils.option_nil(config.cyclic, true)
+  M.mark_state.opt.signs = utils.option_nil(config.signs, true)
+  M.mark_state.opt.force_write_shada = utils.option_nil(config.force_write_shada, false)
+  M.mark_state.opt.cyclic = utils.option_nil(config.cyclic, true)
 end
 
 return M
