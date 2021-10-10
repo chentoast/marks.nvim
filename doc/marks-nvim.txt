@@ -1,0 +1,246 @@
+==============================================================================
+                                                                  *marks-nvim*
+A plugin for viewing, interacting with, and manipulating built in vim marks
+
+Author: Tony Chen <tchen1998 [at] gmail.com>
+
+View marks in the sign column, quickly add, delete, and toggle marks, cycle
+between marks, preview marks in floating windows, and much more.
+
+==============================================================================
+CONTENTS                                            *marks.nvim*
+
+    1. Introduction .................... |marks-introduction|
+    2. Setup ........................... |marks-setup|
+    3. Mappings ........................ |marks-mappings|
+    4. Highlights/Commands ............. |marks-cmds|
+    5. Contributing .................... |marks-contrib|
+    6. License ......................... |marks-license|
+
+==============================================================================
+1. Introduction                                            *marks-introduction*
+
+This plugin enhances vim's built in marks functionality. Among other things,
+it allows you to:
+
+  view marks in the sign column
+  quikcly add, delete, and toggle marks
+  cycle between marks
+  preview marks in floating windows
+  extract marks to quickfix/location list
+
+This plugin requires neovim 0.5 or higher. Since this plugin is mainly written
+in lua, it will not work with vim.
+
+==============================================================================
+2. Setup                                                        *marks-setup*
+
+Setup is done through lua. To initialize the plugin with all of its defaults,
+put the following in your init.vim:
+
+  Example: >
+
+      require'marks'.setup {
+        default_mappings = true,
+        signs = true,
+        mappings = {}
+      }
+<
+The setup function takes in a table of keys that control the behavior of this
+plugin. The following options are defined:
+
+                                                               *marks-builtin*
+  builtin_marks: table
+    (default {})
+    
+    Which builtin marks to track and show. If set, these marks will also show
+    up in the signcolumn and will update on |CursorMoved|
+
+    Supported values:
+      "'"
+      "^"
+      "."
+      "<"
+      ">"
+
+    Example: >
+
+      require'marks'.setup {
+        builtin_marks = { "'", "<", ">", "." }
+      }
+<
+                                                      *marks-default_mappings*
+  default_mappings: bool
+    (default true)
+
+    Whether to use the default plugin mappings or not. See |marks-mappings| for more
+
+                                                                 *marks-signs*
+  signs: bool
+    (default true)
+
+    Whether to show marks in the signcolumn or not. If set to true, its
+    recommended to also set |signcolumn| to "auto", for cases where multiple
+    marks are placed on the same line.
+
+                                                                *marks-cyclic*
+  cyclic: bool
+    (default true)
+
+    Whether forward/backwards movement should cycle back to the beginning/end
+    of buffer.
+
+                                                     *marks-force_write_shada*
+  force_write_shada: bool
+    (default false)
+
+    If true, then deleting global (uppercase) marks will also update the
+    |shada| file accordingly and force deletion of the mark permanently. 
+    This option can be destructive and should be set only after reading more
+    about the shada file.
+
+==============================================================================
+2. Mappings                                                   *marks-mappings*
+
+The following mappings are defined by default:
+
+    mx              Set mark x
+    m,              Set the next available alphabetical (lowercase) mark
+    m;              Toggle the next available mark at the current line
+    dmx             Delete mark x
+    dm-             Delete all marks on the current line
+    dm<space>       Delete all marks in the current buffer
+    m]              Move to next mark
+    m[              Move to previous mark
+    m:              Preview mark. This will prompt you for a specific mark to
+                    preview; press <cr> to preview the next mark.
+
+Mappings can be controlled via the `setup` function, by passing in a mappings
+table, with commands as keys, and the desired mappings as values.
+
+The following are the available keys of the mapping table (see above as well):
+
+  leader            See |marks-leader|
+  set_next          Set the next alphabetical mark
+  set               Set a named mark. This option will be ignored if |marks-leader|
+                    is not false.
+  toggle            Toggle a mark at the cursor.
+  next              Move to the next mark
+  prev              Move to the previous mark.
+  delete            Delete a mark. This option will be ignored if
+                    |marks-leader| is not false.
+  delete_line       Delete the marks on the current line.
+  delete_buf        Delete all marks in the buffer.
+  preview           Preview a mark.
+
+                                                                *marks-leader*
+By default, marks.nvim mappings are namespaced with a leader key.
+For example, the default leader is "m", which allows you to use "m" to set
+marks, preview, and move.
+Changing the leader key will change the prefix of all the mappings above.
+Note that the prefix mappings can only be one key long.
+
+  Example: >
+
+    require'marks'.setup {
+      mappings = {
+        leader = "n"
+      }
+    }
+<
+
+  means that setting mark "a" is done by pressing "na", moving to the next
+  mark is done by pressing "n]", and deleting mark "a" is done by pressing
+  "dna".
+
+  Example: >
+
+    require'marks'.setup {
+      mappings = {
+        set_next = "."
+      }
+    }
+<
+  means that setting a mark on the current cursor is done by pressing "m."
+
+If you do not want your mappings to behave like this, or you want
+to set multi-key mappings, then you can set the leader to false,
+which will disable this behavior.
+
+  Example: >
+    require'marks'.setup {
+      default_mappings = false,
+      mappings = {
+        leader = false,
+        set = "m",
+        next = "]]",
+        delete = "n"
+      }
+    }
+<
+  means that setting mark "a" is done by pressing "ma", moving to the next
+  mark is done by pressing "]]", and deleting mark "a" is done by pressing
+  "na".
+
+  These extra mappings can be set in addition to the default mappings:
+
+  Example: >
+    require'marks'.setup {
+      default_mappings = true,
+      mappings = {
+        leader = false,
+        next = "]]"
+      }
+    }
+<
+  will allow you to use both "m]" and "]]" to go to the next mark.
+
+==============================================================================
+4. Highlights and Commands                                       *marks-cmds*
+
+marks.nvim defines the following highlight groups. For more information,
+see |sign_define()|.
+
+*MarksSignHL*
+  (defaults to |Identifier|)
+
+  The highlight group for displayed mark signs.
+
+*MarkNumSignHL*
+
+  (defaults to |LineNr|)
+
+  The highlight group for the number line in a signcolumn: see
+  |sign_define()|.
+
+marks.nvim also defines the following commands:
+
+*:MarksToggleSigns*
+
+Toggle signs in the buffer
+
+*:MarksListBuf*
+
+Fill the location list with all marks in the current buffer.
+
+*:MarksListGlobal*
+
+Fill the quickfix list with all global marks in open buffers.
+
+*:MarksListAll*
+
+Fill the quickfix list with all marks in all open buffers.
+
+==============================================================================
+5. Contributing                                             *marks-contrib*
+
+If you would like to contribute a PR or issue, please do so at
+https://github.com/chentau/marks.nvim
+
+
+==============================================================================
+6. License                                                   *marks-license*
+
+MIT License
+
+vim:tw=78:ts=2:et:sts=2:sw=2:ft=help
