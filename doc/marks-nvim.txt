@@ -122,13 +122,17 @@ The following are the available keys of the mapping table (see above as well):
 
   leader            See |marks-leader|
   set_next          Set the next alphabetical mark
-  set               Set a named mark. This option will be ignored if |marks-leader|
-                    is not false.
+  set               Set a named mark (will wait for input). The leader key implements this
+                    functionality by default, so you only need to set this if you disable
+                    the leader (see below)
+
   toggle            Toggle a mark at the cursor.
   next              Move to the next mark
   prev              Move to the previous mark.
-  delete            Delete a mark. This option will be ignored if
-                    |marks-leader| is not false.
+  delete            Delete a mark (will wait for input). just like 'set', this is
+                    automatically handled if the leader key is present, so only set this if
+                    the leader is disabled.
+
   delete_line       Delete the marks on the current line.
   delete_buf        Delete all marks in the buffer.
   preview           Preview a mark.
