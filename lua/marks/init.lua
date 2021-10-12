@@ -12,8 +12,8 @@ function M.prefix()
     return
   end
 
-  if M.key_table[input] then
-    return M[M.key_table[input]]()
+  if M.prefix_table[input] then
+    return M[M.prefix_table[input]]()
   end
 
   if utils.is_valid_mark(input) then
@@ -31,8 +31,8 @@ function M.delete_prefix()
     return
   end
 
-  if M.key_table[input] then
-    M[M.key_table[input]]()
+  if M.delete_prefix_table[input] then
+    M[M.delete_prefix_table[input]]()
   end
 
   if utils.is_valid_mark(input) then
@@ -105,12 +105,14 @@ end
 local function default_mappings()
   vim.cmd"nnoremap <silent> m <cmd>lua require'marks'.prefix()<cr>"
   vim.cmd"nnoremap <silent> dm <cmd>lua require'marks'.delete_prefix()<cr>"
-  M.key_table = {
+  M.prefix_table = {
     [","] = "set_next",
     [";"] = "toggle",
     ["]"] = "next",
     ["["] = "prev",
     [":"] = "preview",
+  }
+  M.delete_prefix_table = {
     ["-"] = "delete_line",
     [" "] = "delete_buf"
   }
@@ -133,28 +135,38 @@ local function prefix_mappings(config)
     vim.cmd("nnoremap <silent> "..leader.." <cmd>lua require'marks'.prefix()<cr>")
     vim.cmd("nnoremap <silent> d"..leader.." <cmd>lua require'marks'.delete_prefix()<cr>")
   end
+  config.mappings.leader = nil
 
   -- if the user mapped the defaults in addition to specifying mappings,
-  -- we need to remove the corresponding default mappings
+  -- we need to remove the corresponding default mappings first
   if config.default_mappings then
-    local inverse = {}
-    for cmd, key in pairs(M.key_table) do
-      inverse[key] = cmd
+    local prefix_inverse = {}
+    local delete_prefix_inverse = {}
+
+    for cmd, key in pairs(M.prefix_table) do
+      prefix_inverse[key] = cmd
+    end
+    for cmd, key in pairs(M.delete_prefix_table) do
+      delete_prefix_inverse[key] = cmd
     end
 
     for cmd, key in pairs(config.mappings) do
-      if cmd ~= "leader" and cmd ~= "set" and cmd ~= "delete" then
-        M.key_table[inverse[cmd]] = nil
+      if key:sub(1, 7) == "delete_" then
+        M.delete_prefix_table[delete_prefix_inverse[cmd]] = nil
+      elseif cmd ~= "set" and cmd ~= "delete" then
+        -- "set" and "delete" commands are special, since they are unmapped by default
+        -- we don't need to delete them
+        M.prefix_table[prefix_inverse[cmd]] = nil
       end
     end
   end
 
   for cmd, key in pairs(config.mappings) do
-      -- prefix mappings ignore 'set' and 'delete',
-      -- since those are only for use as non-prefix mappings.
-      -- these are handled instead by 'prefix' and 'delete_prefix'
-    if cmd ~= "leader" and cmd ~= "set" and cmd ~= "delete" then
-      M.key_table[key] = cmd
+    key = vim.api.nvim_replace_termcodes(key, true, true, true)
+    if cmd:sub(1, 6) == "delete" then
+      M.delete_prefix_table[key] = cmd
+    else
+      M.prefix_table[key] = cmd
     end
   end
 end
