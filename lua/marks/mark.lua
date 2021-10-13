@@ -167,30 +167,6 @@ function Mark:delete_buf_marks(clear)
   end
 end
 
-local function search_mark(marks, line, init_values, cmp, cyclic)
-  local min_next_line = init_values
-  local next_mark
-  -- if we need to wrap around
-  local min_line = init_values
-  local min_mark
-
-  for mark, data in pairs(marks) do
-    if cmp(data.line, line) and (not cmp(data.line, min_next_line)) and
-        utils.is_letter(mark) then
-      min_next_line = data.line
-      next_mark = mark
-    end
-    if not cmp(data.line, min_line) and utils.is_letter(mark) then
-      min_line = data.line
-      min_mark = mark
-    end
-  end
-  if not cyclic then
-    return next_mark
-  end
-  return next_mark or min_mark
-end
-
 function Mark:next_mark()
   local bufnr = a.nvim_get_current_buf()
   if (not self.buffers[bufnr]) or
@@ -199,12 +175,21 @@ function Mark:next_mark()
   end
 
   local line = vim.fn.getpos(".")[2]
-  local marks = self.buffers[bufnr].placed_marks
-  local next_mark = search_mark(marks, line, math.huge, function(a, b) return a > b end,
-      self.opt.cyclic)
+  local marks = {}
+  for mark, data in pairs(self.buffers[bufnr].placed_marks) do
+    if utils.is_letter(mark) then
+      marks[mark] = data
+    end
+  end
 
-  if next_mark then
-    vim.cmd("normal! `" .. next_mark)
+  local function comparator(a, b, key)
+    return a.line > b.line
+  end
+
+  local next = utils.search(marks, {line=line}, {line=math.huge}, comparator, self.opt.cyclic)
+
+  if next then
+    vim.fn.setpos(".", { 0, next.line, next.col, 0 })
   end
 end
 
@@ -216,12 +201,20 @@ function Mark:prev_mark()
   end
 
   local line = vim.fn.getpos(".")[2]
-  local marks = self.buffers[bufnr].placed_marks
-  local prev_mark = search_mark(marks, line, -1, function(a, b) return a < b end,
-      self.opt.cyclic)
+  local marks = {}
+  for mark, data in pairs(self.buffers[bufnr].placed_marks) do
+    if utils.is_letter(mark) then
+      marks[mark] = data
+    end
+  end
 
-  if prev_mark then
-    vim.cmd("normal! `" .. prev_mark)
+  local function comparator(a, b, key)
+    return a.line < b.line
+  end
+  local prev = utils.search(marks, {line=line}, {line=-1}, comparator, self.opt.cyclic)
+
+  if prev then
+    vim.fn.setpos(".", { 0, prev.line, prev.col, 0 })
   end
 end
 
@@ -258,7 +251,11 @@ function Mark:preview_mark()
 end
 
 function Mark:buffer_to_loclist(bufnr)
-  bufnr = bufnr or a.nvim_get_current_buf()
+  local bufnr = bufnr or a.nvim_get_current_buf()
+  if not self.buffers[bufnr] then
+    return
+  end
+
   local items = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
@@ -266,10 +263,10 @@ function Mark:buffer_to_loclist(bufnr)
         text = "mark " .. mark .. ": " .. text})
   end
 
-  vim.fn.setloclist(bufnr, items, "r")
+  vim.fn.setloclist(0, items, "r")
 end
 
-function Mark:all_to_qflist()
+function Mark:all_to_loclist()
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
     for mark, data in pairs(buffer_state.placed_marks) do
@@ -279,10 +276,10 @@ function Mark:all_to_qflist()
     end
   end
 
-  vim.fn.setqflist(items, "r")
+  vim.fn.setloclist(0, items, "r")
 end
 
-function Mark:global_to_qflist()
+function Mark:global_to_loclist()
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
     for mark, data in pairs(buffer_state.placed_marks) do
@@ -294,7 +291,7 @@ function Mark:global_to_qflist()
     end
   end
 
-  vim.fn.setqflist(items, "r")
+  vim.fn.setloclist(0, items, "r")
 end
 
 function Mark:toggle_signs()

@@ -1,4 +1,5 @@
 local mark = require'marks.mark'
+local bookmark = require'marks.bookmark'
 local utils = require'marks.utils'
 local M = {}
 
@@ -101,6 +102,25 @@ function M.refresh()
   M.mark_state:on_load()
 end
 
+-- set_group[0-9] functions
+for i=0,9 do
+  M["set_bookmark" .. i] = function() M.bookmark_state:place_mark(i) end
+  M["delete_bookmark" .. i] = function() M.bookmark_state:delete_all(i) end
+  M["next_bookmark" .. i] = function() M.bookmark_state:next(i) end
+  M["prev_bookmark" .. i] = function() M.bookmark_state:prev(i) end
+end
+
+function M.delete_bookmark()
+  M.bookmark_state:delete_mark_cursor()
+end
+
+function M.next_bookmark()
+  M.bookmark_state:next()
+end
+
+function M.prev_bookmark()
+  M.bookmark_state:prev()
+end
 
 local function default_mappings()
   vim.cmd"nnoremap <silent> m <cmd>lua require'marks'.prefix()<cr>"
@@ -111,11 +131,19 @@ local function default_mappings()
     ["]"] = "next",
     ["["] = "prev",
     [":"] = "preview",
+    ["}"] = "next_bookmark",
+    ["{"] = "prev_bookmark"
   }
   M.delete_prefix_table = {
     ["-"] = "delete_line",
+    ["="] = "delete_bookmark",
     [" "] = "delete_buf"
   }
+
+  for i=0,9 do
+    M.prefix_table[tostring(i)] = "set_bookmark" .. i
+    M.delete_prefix_table[tostring(i)] = "delete_bookmark" .. i
+  end
 end
 
 local function regular_mappings(config)
@@ -218,6 +246,22 @@ end
 function M.setup(config)
   M.mark_state = mark.new()
   M.mark_state.builtin_marks = config.builtin_marks or {}
+
+  M.bookmark_state = bookmark.new()
+
+  local bookmark_config
+  for i=0,9 do
+    bookmark_config = config["bookmark_" .. i]
+    if bookmark_config then
+      if bookmark_config.sign == false then
+        M.bookmark_state.signs[i] = nil
+      else
+        M.bookmark_state.signs[i] = bookmark_config.sign or M.bookmark_state.signs[i]
+      end
+      M.bookmark_state.virt_text[i] = bookmark_config.virt_text or
+          M.bookmark_state.virt_text[i]
+    end
+  end
 
   config.default_mappings = utils.option_nil(config.default_mappings, true)
   setup_mappings(config)

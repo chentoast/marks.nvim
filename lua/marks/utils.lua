@@ -10,22 +10,46 @@ local movement_marks = { ["`"] = true, ["'"] = true,
                         ['"'] = true, ["<"] = true, [">"] = true, ["["] = true,
                         ["]"] = true }
 
-function M.add_sign(bufnr, text, line, id)
+function M.add_sign(bufnr, text, line, id, group)
+  local group = group or "MarkSigns"
   local sign_name = "Marks_" .. text
   if not M.sign_cache[sign_name] then
     M.sign_cache[sign_name] = true
     vim.fn.sign_define(sign_name, { text = text, texthl = "MarkSignHL",
                                     numhl = "MarkSignNumHL" })
   end
-  vim.fn.sign_place(id, "MarkSigns", sign_name, bufnr, { lnum = line })
+  vim.fn.sign_place(id, group, sign_name, bufnr, { lnum = line })
 end
 
-function M.remove_sign(bufnr, id)
-  vim.fn.sign_unplace("MarkSigns", { buffer = bufnr, id = id })
+function M.remove_sign(bufnr, id, group)
+  local group = group or "MarkSigns"
+  vim.fn.sign_unplace(group, { buffer = bufnr, id = id })
 end
 
-function M.remove_buf_signs(bufnr)
-  vim.fn.sign_unplace("MarkSigns", { buffer = bufnr })
+function M.remove_buf_signs(bufnr, group)
+  local group = group or "MarkSigns"
+  vim.fn.sign_unplace(group, { buffer = bufnr })
+end
+
+function M.search(marks, start_data, init_values, cmp, cyclic)
+  local min_next = init_values
+  local min_next_set = false
+  -- if we need to wrap around
+  local min = init_values
+
+  for mark, data in pairs(marks) do
+    if cmp(data, start_data, mark) and not cmp(data, min_next, mark) then
+      min_next = data
+      min_next_set = true
+    end
+    if cyclic and not cmp(data, min, mark) then
+      min = data
+    end
+  end
+  if not cyclic then
+    return min_next_set and min_next or nil
+  end
+  return min_next_set and min_next or min
 end
 
 function M.is_valid_mark(char)
