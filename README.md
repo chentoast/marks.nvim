@@ -4,6 +4,10 @@ Requires Neovim 0.5+.
 
 ![](../assets/marks-demo.gif)
 
+Screenshot:
+
+![](../assets/demo_screenshot.png)
+
 ## Features
 
 - view marks in the sign column
