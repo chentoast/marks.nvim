@@ -126,7 +126,12 @@ local function apply_mappings()
 end
 
 local function setup_mappings(config)
-  user_mappings(config)
+  if not config.default_mappings then
+    M.mappings = {}
+  end
+  if config.mappings then
+    user_mappings(config)
+  end
   apply_mappings()
 end
 
