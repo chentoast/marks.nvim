@@ -19,8 +19,8 @@ nnoremap <Plug>(Marks-set) <cmd> lua require'marks'.set()<cr>
 nnoremap <Plug>(Marks-setnext) <cmd> lua require'marks'.set_next()<cr>
 nnoremap <Plug>(Marks-toggle) <cmd> lua require'marks'.toggle()<cr>
 nnoremap <Plug>(Marks-delete) <cmd> lua require'marks'.delete()<cr>
-nnoremap <Plug>(Marks-deleteline) <cmd> lua require'marks'.deleteline()<cr>
-nnoremap <Plug>(Marks-deletebuf) <cmd> lua require'marks'.deletebuf()<cr>
+nnoremap <Plug>(Marks-deleteline) <cmd> lua require'marks'.delete_line()<cr>
+nnoremap <Plug>(Marks-deletebuf) <cmd> lua require'marks'.delete_buf()<cr>
 nnoremap <Plug>(Marks-preview) <cmd> lua require'marks'.preview()<cr>
 nnoremap <Plug>(Marks-next) <cmd> lua require'marks'.next()<cr>
 nnoremap <Plug>(Marks-prev) <cmd> lua require'marks'.prev()<cr>
