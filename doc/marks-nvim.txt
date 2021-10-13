@@ -12,6 +12,7 @@ CONTENTS                                            *marks.nvim*
 
     1. Introduction .................... |marks-introduction|
     2. Setup ........................... |marks-setup|
+    3. Bookmarks ....................... |marks-bookmarks|
     3. Mappings ........................ |marks-mappings|
     4. Highlights/Commands ............. |marks-cmds|
     5. Contributing .................... |marks-contrib|
@@ -28,6 +29,7 @@ it allows you to:
   cycle between marks
   preview marks in floating windows
   extract marks to quickfix/location list
+  place bookmarks with sign/virtual text annotations
 
 This plugin requires neovim 0.5 or higher. Since this plugin is mainly written
 in lua, it will not work with vim.
@@ -52,7 +54,7 @@ plugin. The following options are defined:
                                                                *marks-builtin*
   builtin_marks: table
     (default {})
-    
+
     Which builtin marks to track and show. If set, these marks will also show
     up in the signcolumn and will update on |CursorMoved|
 
@@ -95,9 +97,36 @@ plugin. The following options are defined:
     (default false)
 
     If true, then deleting global (uppercase) marks will also update the
-    |shada| file accordingly and force deletion of the mark permanently. 
+    |shada| file accordingly and force deletion of the mark permanently.
     This option can be destructive and should be set only after reading more
     about the shada file.
+
+  bookmark_[0-9]: table                              *marks-bookmark_config*
+    (default {})
+
+    Configuration table for each bookmark group (see |marks-bookmarks|).
+    The table has the following keys:
+
+      sign: the character to use in the signcolumn for this bookmark group.
+        defaults to "!@#$%^&*()" - in order from group 1 to 0. set to false to
+        turn off signs for this bookmark.
+      virt_text: virtual text annotations to place at the eol of a bookmark.
+        defaults to nil, meaning no virtual text.
+
+==============================================================================
+2. Bookmarks                                                *marks-bookmarks*
+
+marks.nvim also introduces the idea of a "bookmark" - a unnamed marker that is
+tied to a particular (buffer, line, col) triple. Bookmarks can optionally have
+signs or virtual text annotations attached to them, and can be useful for
+remembering positions in a particular buffer without having to set an
+uppercase mark. For example, you might set two bookmarks to quickly toggle
+back and forth between a function and its corresponding unit test in another file.
+
+marks.nvim supports up to 10 bookmark groups, each of which optionally has its
+own sign text and virtual text. marks.nvim provides functionality to set,
+delete, and cycle between bookmarks of a particular group - see
+|marks-mappings| for more information.
 
 ==============================================================================
 2. Mappings                                                   *marks-mappings*
@@ -114,33 +143,56 @@ The following mappings are defined by default:
     m[              Move to previous mark
     m:              Preview mark. This will prompt you for a specific mark to
                     preview; press <cr> to preview the next mark.
+    m[0-9]          Add a bookmark from bookmark group[0-9].
+    dm[0-9]         Delete all bookmarks from bookmark group[0-9].
+    m}              Move to the next bookmark having the same type as the bookmark under
+                    the cursor. Works across buffers.
+    m{              Move to the previous bookmark having the same type as the bookmark under
+                    the cursor. Works across buffers.
+    dm=             Delete the bookmark under the cursor.
 
 Mappings can be controlled via the `setup` function, by passing in a mappings
 table, with commands as keys, and the desired mappings as values.
 
 The following are the available keys of the mapping table (see above as well):
 
-  leader            See |marks-leader|
-  set_next          Set the next alphabetical mark
-  set               Set a named mark (will wait for input). The leader key implements this
-                    functionality by default, so you only need to set this if you disable
-                    the leader (see below)
+  leader                 See |marks-leader|
+  set_next               Set the next available alphabetical mark
+  set                    Set a named mark (will wait for input). The leader key implements this
+                         functionality by default, so you only need to set this if you disable
+                         the leader (see below)
 
-  toggle            Toggle a mark at the cursor.
-  next              Move to the next mark
-  prev              Move to the previous mark.
-  delete            Delete a mark (will wait for input). just like 'set', this is
-                    automatically handled if the leader key is present, so only set this if
-                    the leader is disabled.
+  toggle                 Toggle a mark at the cursor.
+  next                   Move to the next mark
+  prev                   Move to the previous mark.
+  delete                 Delete a mark (will wait for input). just like 'set', this is
+                         automatically handled if the leader key is present, so only set this if
+                         the leader is disabled.
 
-  delete_line       Delete the marks on the current line.
-  delete_buf        Delete all marks in the buffer.
-  preview           Preview a mark.
+  delete_line            Delete the marks on the current line.
+  delete_buf             Delete all marks in the buffer.
+  preview                Preview a mark.
+
+  set_bookmark[0-9]      Sets a bookmark from group[0-9].
+  delete_bookmark[0-9]   Deletes all bookmarks from group[0-9].
+  delete_bookmark        Deletes the bookmark under the cursor.
+  next_bookmark          Moves to the next bookmark having the same type as the
+                         bookmark under the cursor.
+  prev_bookmark          Moves to the previous bookmark having the same type as the
+                         bookmark under the cursor.
+  next_bookmark[0-9]     Moves to the next bookmark of of the same group type. Works by
+                         first going according to line number, and then according to buffer
+                         number.
+  prev_bookmark[0-9]     Moves to the previous bookmark of of the same group type. Works by
+                         first going according to line number, and then according to buffer
+                         number.
 
                                                                 *marks-leader*
 By default, marks.nvim mappings are namespaced with a leader key.
 For example, the default leader is "m", which allows you to use "m" to set
 marks, preview, and move, without any pauses due to vim's mapping resolution.
+The leader key is also used to set and delete letter marks, via
+`<leader><letter>` and `d<leader><letter>`, respectively.
 Changing the leader key will change the prefix of all the mappings above.
 Note that the prefix mappings can only be one key long.
 
@@ -214,6 +266,13 @@ on the functionality of each mapping):
     <Plug>(Marks-preview)
     <Plug>(Marks-next)
     <Plug>(Marks-prev)
+    <Plug>(Marks-delete-bookmark)
+    <Plug>(Marks-next-bookmark)
+    <Plug>(Marks-prev-bookmark)
+    <Plug>(Marks-set-bookmark[0-9])
+    <Plug>(Marks-delete-bookmark[0-9])
+    <Plug>(Marks-next-bookmark[0-9])
+    <Plug>(Marks-prev-bookmark[0-9])
 
   Example:
 
@@ -233,11 +292,15 @@ see |sign_define()|.
   The highlight group for displayed mark signs.
 
 *MarkNumSignHL*
-
   (defaults to |LineNr|)
 
   The highlight group for the number line in a signcolumn: see
   |sign_define()|.
+
+*MarkVirtTextHL*
+  (defaults to |Comment|)
+
+  The highlight group for bookmark virtual text annotations.
 
 marks.nvim also defines the following commands:
 
@@ -251,11 +314,19 @@ Fill the location list with all marks in the current buffer.
 
 *:MarksListGlobal*
 
-Fill the quickfix list with all global marks in open buffers.
+Fill the location list with all global marks in open buffers.
 
 *:MarksListAll*
 
-Fill the quickfix list with all marks in all open buffers.
+Fill the location list with all marks in all open buffers.
+
+*:BookmarksList* group_number
+
+Fill the location list with all bookmarks of group "group_number".
+
+*:BookmarksListAll*
+
+Fill the location list with all bookmarks, across all groups.
 
 ==============================================================================
 5. Contributing                                             *marks-contrib*
