@@ -93,7 +93,7 @@ function Mark:delete_mark(mark, clear)
   end
 
   local line = buffer.placed_marks[mark].line
-  for key, tmp_mark in ipairs(buffer.marks_by_line[line]) do
+  for key, tmp_mark in pairs(buffer.marks_by_line[line]) do
     if tmp_mark == mark then
       buffer.marks_by_line[line][key] = nil
       break
