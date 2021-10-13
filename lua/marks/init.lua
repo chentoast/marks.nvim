@@ -3,45 +3,6 @@ local bookmark = require'marks.bookmark'
 local utils = require'marks.utils'
 local M = {}
 
--- exposed functions for users, in case they want to map these directly
-
-function M.prefix()
-  local err, input = pcall(function()
-    return string.char(vim.fn.getchar())
-  end)
-  if not err then
-    return
-  end
-
-  if M.prefix_table[input] then
-    return M[M.prefix_table[input]]()
-  end
-
-  if utils.is_valid_mark(input) then
-    M.mark_state:place_mark_cursor(input)
-    vim.cmd("normal! m" .. input)
-    return
-  end
-end
-
-function M.delete_prefix()
-  local err, input = pcall(function()
-    return string.char(vim.fn.getchar())
-  end)
-  if not err then
-    return
-  end
-
-  if M.delete_prefix_table[input] then
-    M[M.delete_prefix_table[input]]()
-  end
-
-  if utils.is_valid_mark(input) then
-    M.mark_state:delete_mark(input)
-    return
-  end
-end
-
 function M.set()
   local err, input = pcall(function()
     return string.char(vim.fn.getchar())
@@ -122,95 +83,51 @@ function M.prev_bookmark()
   M.bookmark_state:prev()
 end
 
-local function default_mappings()
-  vim.cmd"nnoremap <silent> m <cmd>lua require'marks'.prefix()<cr>"
-  vim.cmd"nnoremap <silent> dm <cmd>lua require'marks'.delete_prefix()<cr>"
-  M.prefix_table = {
-    [","] = "set_next",
-    [";"] = "toggle",
-    ["]"] = "next",
-    ["["] = "prev",
-    [":"] = "preview",
-    ["}"] = "next_bookmark",
-    ["{"] = "prev_bookmark"
-  }
-  M.delete_prefix_table = {
-    ["-"] = "delete_line",
-    ["="] = "delete_bookmark",
-    [" "] = "delete_buf"
-  }
+M.mappings = {
+  ["m"] = "set",
+  ["m,"] = "set_next",
+  ["m;"] = "toggle",
+  ["m]"] = "next",
+  ["m["] = "prev",
+  ["m:"] = "preview",
+  ["m}"] = "next_bookmark",
+  ["m{"] = "prev_bookmark",
+  ["dm"] = "delete",
+  ["dm-"] = "delete_line",
+  ["dm="] = "delete_bookmark",
+  ["dm<space>"] = "delete_buf"
+}
 
-  for i=0,9 do
-    M.prefix_table[tostring(i)] = "set_bookmark" .. i
-    M.delete_prefix_table[tostring(i)] = "delete_bookmark" .. i
-  end
+for i=0,9 do
+  M.mappings["m"..tostring(i)] = "set_bookmark" .. i
+  M.mappings["dm"..tostring(i)] = "delete_bookmark" .. i
 end
 
-local function regular_mappings(config)
-  for cmd, key in pairs(config.mappings) do
-    if cmd ~= "leader" then
-      vim.cmd("nnoremap <silent> "..key.." <cmd>lua require'marks'."..cmd.."()<cr>")
-    end
-  end
-end
-
-local function prefix_mappings(config)
-  local leader = config.mappings.leader
-  if leader and config.default_mappings then
-    -- remove the previously set default mappings
-    vim.cmd("nunmap m")
-    vim.cmd("nunmap dm")
-    vim.cmd("nnoremap <silent> "..leader.." <cmd>lua require'marks'.prefix()<cr>")
-    vim.cmd("nnoremap <silent> d"..leader.." <cmd>lua require'marks'.delete_prefix()<cr>")
-  end
-  config.mappings.leader = nil
-
-  -- if the user mapped the defaults in addition to specifying mappings,
-  -- we need to remove the corresponding default mappings first
-  if config.default_mappings then
-    local prefix_inverse = {}
-    local delete_prefix_inverse = {}
-
-    for cmd, key in pairs(M.prefix_table) do
-      prefix_inverse[key] = cmd
-    end
-    for cmd, key in pairs(M.delete_prefix_table) do
-      delete_prefix_inverse[key] = cmd
-    end
-
-    for cmd, key in pairs(config.mappings) do
-      if key:sub(1, 7) == "delete_" then
-        M.delete_prefix_table[delete_prefix_inverse[cmd]] = nil
-      elseif cmd ~= "set" and cmd ~= "delete" then
-        -- "set" and "delete" commands are special, since they are unmapped by default
-        -- we don't need to delete them
-        M.prefix_table[prefix_inverse[cmd]] = nil
-      end
-    end
+local function user_mappings(config)
+  local inverse = {}
+  for key, cmd in pairs(M.mappings) do
+    inverse[cmd] = key
   end
 
   for cmd, key in pairs(config.mappings) do
-    key = vim.api.nvim_replace_termcodes(key, true, true, true)
-    if cmd:sub(1, 6) == "delete" then
-      M.delete_prefix_table[key] = cmd
-    else
-      M.prefix_table[key] = cmd
+    if inverse[cmd] then
+      M.mappings[inverse[cmd]] = nil
     end
+    if key ~= false then
+      M.mappings[key] = cmd
+    end
+  end
+end
+
+local function apply_mappings()
+  for key, cmd in pairs(M.mappings) do
+    vim.cmd("nnoremap <silent> "..key.." <cmd>lua require'marks'."..cmd.."()<cr>")
   end
 end
 
 local function setup_mappings(config)
-  if config.mappings and config.mappings.leader == false then
-    regular_mappings(config)
-  end
-
-  if config.default_mappings then
-    default_mappings()
-  end
-
-  if config.mappings and config.mappings.leader ~= false then
-    prefix_mappings(config)
-  end
+  user_mappings(config)
+  apply_mappings()
 end
 
 local function setup_autocommands(state)

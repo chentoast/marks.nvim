@@ -156,19 +156,12 @@ table, with commands as keys, and the desired mappings as values.
 
 The following are the available keys of the mapping table (see above as well):
 
-  leader                 See |marks-leader|
   set_next               Set the next available alphabetical mark
-  set                    Set a named mark (will wait for input). The leader key implements this
-                         functionality by default, so you only need to set this if you disable
-                         the leader (see below)
-
+  set                    Set a named mark (will wait for input).
   toggle                 Toggle a mark at the cursor.
   next                   Move to the next mark
   prev                   Move to the previous mark.
-  delete                 Delete a mark (will wait for input). just like 'set', this is
-                         automatically handled if the leader key is present, so only set this if
-                         the leader is disabled.
-
+  delete                 Delete a mark (will wait for input).
   delete_line            Delete the marks on the current line.
   delete_buf             Delete all marks in the buffer.
   preview                Preview a mark.
@@ -187,69 +180,39 @@ The following are the available keys of the mapping table (see above as well):
                          first going according to line number, and then according to buffer
                          number.
 
-                                                                *marks-leader*
-By default, marks.nvim mappings are namespaced with a leader key.
-For example, the default leader is "m", which allows you to use "m" to set
-marks, preview, and move, without any pauses due to vim's mapping resolution.
-The leader key is also used to set and delete letter marks, via
-`<leader><letter>` and `d<leader><letter>`, respectively.
-Changing the leader key will change the prefix of all the mappings above.
-Note that the prefix mappings can only be one key long.
-
   Example: >
 
     require'marks'.setup {
       mappings = {
-        leader = "n"
+        set = "n",
+        delete = "dn"
       }
     }
 <
 
-  means that setting mark "a" is done by pressing "na", moving to the next
-  mark is done by pressing "n]", and deleting mark "a" is done by pressing
-  "dna".
+  means that setting mark "a" is done by pressing "na", and deleting mark "a"
+  is done by pressing "dna".
 
   Example: >
 
     require'marks'.setup {
       mappings = {
-        set_next = "."
+        set_next = "m."
       }
     }
 <
   means that setting a mark on the current cursor is done by pressing "m."
 
-If you do not want your mappings to behave like this, or you want
-to set multi-key mappings, then you can set the leader to false,
-which will disable this behavior.
+  Mappings can be disabled by setting them to false:
 
   Example: >
     require'marks'.setup {
-      default_mappings = false,
       mappings = {
-        leader = false,
-        set = "m",
-        next = "]]",
-        delete = "n"
+        next = false,
       }
     }
 <
-  means that setting mark "a" is done by pressing "ma", moving to the next
-  mark is done by pressing "]]", and deleting mark "a" is done by pressing
-  "na".
-
-  These extra mappings can be set in addition to the default mappings:
-
-  Example: >
-    require'marks'.setup {
-      default_mappings = true,
-      mappings = {
-        leader = false,
-        next = "]]"
-      }
-    }
-<
-  will allow you to use both "m]" and "]]" to go to the next mark.
+  disables the default mappings of "m]" for next.
 
 Alternatively, <Plug> mappings are provided by marks.nvim, allowing you
 to map keybindings outside of the `setup` function.

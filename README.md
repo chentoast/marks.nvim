@@ -69,17 +69,16 @@ The following default mappings are included:
 
 Set `default_mappings = false` in the setup function if you don't want to have these mapped.
 
-By default, mappings are prefixed with a "leader" key, such that set/move/preview mappings are done with `<leader><key>` and delete operations are done with `d<leader><key>`.
-
-You can change both the leader key and also the keybindings by setting the `mapping` table in the setup function:
+You can change the keybindings by setting the `mapping` table in the setup function:
 
 ```lua
 require'marks'.setup {
   mappings = {
-    leader = "n", -- now, setting mark a is done by pressing "na", and deleting mark a is done via "dna"
-    set_next = ",", -- "n," to set the next available mark
-    next = "]", -- "n]" to go to next mark
-    preview = ";" -- "n;" to preview mark (will wait for input)
+    set_next = "m,",
+    next = "m]",
+    preview = "m;",
+    set_bookmark0 = "m0",
+    prev = false -- pass false to disable only this default mapping
   }
 }
 ```
@@ -114,19 +113,6 @@ The following keys are available to be passed to the mapping table:
                          first going according to line number, and then according to buffer
                          number.
 
-```
-
-If you don't like this prefix behavior, or you want to set mappings that are multiple keys long, you can set `leader = false` to map things the regular way. Note that since the leader key handles setting and deleting letter marks, you will need to specify the `set` and `delete` keys if you disable the leader:
-
-```lua
-require'marks'.setup {
-  mappings = {
-    leader = false, -- set leader to false to disable prefix mappings
-    next = "]]",
-    set = "m", -- set mark a by pressing 'ma'
-    delete = "dm" -- delete mark a by pressing 'dma'
-  }
-}
 ```
 
 marks.nvim also provides a list of `<Plug>` mappings for you, in case you want to map things via vimscript. The list of provided mappings are:
