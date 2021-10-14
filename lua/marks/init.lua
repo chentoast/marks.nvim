@@ -60,7 +60,8 @@ function M.prev()
 end
 
 function M.refresh()
-  M.mark_state:on_load()
+  M.mark_state:refresh()
+  M.bookmark_state:refresh()
 end
 
 -- set_group[0-9] functions
@@ -135,34 +136,11 @@ local function setup_mappings(config)
   apply_mappings()
 end
 
-local function setup_autocommands(state)
+local function setup_autocommands()
   vim.cmd [[augroup Marks_autocmds
     autocmd!
-    autocmd BufWinEnter * lua require'marks'.mark_state:on_load()
+    autocmd BufRead,BufNewFile * lua require'marks'.mark_state:refresh()
   augroup end]]
-
-  -- FIXME icky. change this when the ModeChanged
-  -- autocommands get merged
-  refresh_aucmd = { "augroup Marks_refresh_autocmds", "autocmd!" }
-  if not vim.tbl_isempty(vim.tbl_filter(function(v)
-        return utils.is_insert_mark(v)
-      end, state.builtin_marks)) then
-     table.insert(refresh_aucmd,
-       "autocmd InsertLeave * lua require'marks'.mark_state:refresh_insert_marks()"
-     )
-  end
-
-  if not vim.tbl_isempty(vim.tbl_filter(function(v)
-        return utils.is_movement_mark(v)
-      end, state.builtin_marks)) then
-     table.insert(refresh_aucmd,
-      "autocmd CursorMoved * lua require'marks'.mark_state:refresh_movement_marks()"
-    )
-  end
-
-  table.insert(refresh_aucmd, "augroup end")
-
-  vim.cmd(table.concat(refresh_aucmd, "\n"))
 end
 
 function M.setup(config)
@@ -187,11 +165,21 @@ function M.setup(config)
 
   config.default_mappings = utils.option_nil(config.default_mappings, true)
   setup_mappings(config)
-  setup_autocommands(M.mark_state)
+  setup_autocommands()
 
   M.mark_state.opt.signs = utils.option_nil(config.signs, true)
   M.mark_state.opt.force_write_shada = utils.option_nil(config.force_write_shada, false)
   M.mark_state.opt.cyclic = utils.option_nil(config.cyclic, true)
+  local refresh_interval = utils.option_nil(config.refresh_interval, 150)
+
+  local marks_timer = vim.loop.new_timer()
+  marks_timer:start(0, refresh_interval, vim.schedule_wrap(function()
+    M.mark_state:refresh()
+  end))
+  local bookmarks_timer = vim.loop.new_timer()
+  bookmarks_timer:start(0, refresh_interval, vim.schedule_wrap(function()
+    M.bookmark_state:refresh()
+  end))
 end
 
 return M

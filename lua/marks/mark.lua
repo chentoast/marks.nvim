@@ -35,8 +35,7 @@ function Mark:register_mark(mark, line, col, bufnr)
   end
   buffer.placed_marks[mark] = { line = line, col = col, id = -1 }
 
-  if self.opt.signs and (utils.is_letter(mark) or 
-      vim.tbl_contains(self.builtin_marks, mark)) then
+  if self.opt.signs and utils.is_valid_mark(mark) then
     local id = mark:byte() * 100
     buffer.placed_marks[mark].id = id
     utils.add_sign(bufnr, mark, line, id)
@@ -129,61 +128,10 @@ function Mark:delete_mark(mark, clear)
   end
 end
 
-function Mark:validate_marks(bufnr)
-  local bufnr = bufnr or a.nvim_get_current_buf()
-  local buffer = self.buffers[bufnr]
-
-  -- update position in case buffer text has changed
-  local deleted_marks = {}
-  for mark, mark_data in pairs(buffer.placed_marks) do
-    local line = vim.fn.getpos("'" .. mark)[2]
-
-    if line == 0 then -- mark was deleted
-      for key, mark_tmp in pairs(buffer.marks_by_line[mark_data.line]) do
-        if mark_tmp == mark then
-          buffer.marks_by_line[mark_data.line][key] = nil
-          break
-        end
-      end
-      if vim.tbl_isempty(buffer.marks_by_line[mark_data.line]) then
-        buffer.marks_by_line[mark_data.line] = nil
-      end
-
-      table.insert(deleted_marks, mark)
-    elseif line ~= mark_data.line then
-
-      if buffer.marks_by_line[line] then
-        table.insert(buffer.marks_by_line[line], mark)
-      else
-        buffer.marks_by_line[line] = { mark }
-      end
-
-      for key, mark_tmp in pairs(buffer.marks_by_line[mark_data.line]) do
-        if mark_tmp == mark then
-          buffer.marks_by_line[mark_data.line][key] = nil
-          break
-        end
-      end
-      if vim.tbl_isempty(buffer.marks_by_line[mark_data.line]) then
-        buffer.marks_by_line[mark_data.line] = nil
-      end
-
-      mark_data.line = line
-    end
-  end
-  for _, mark in ipairs(deleted_marks) do
-    buffer.placed_marks[mark] = nil
-    if utils.is_lower(mark) and mark:byte() < buffer.lowest_available_mark:byte() then
-      buffer.lowest_available_mark = mark
-    end
-  end
-end
-
 function Mark:delete_line_marks()
   local bufnr = a.nvim_get_current_buf()
   local pos = vim.fn.getpos(".")
 
-  self:validate_marks(bufnr)
   if not self.buffers[bufnr].marks_by_line[pos[2]] then
     return
   end
@@ -225,7 +173,6 @@ function Mark:next_mark()
   if not self.buffers[bufnr] then
     return
     end
-  self:validate_marks(bufnr)
   if vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
     return
   end
@@ -255,7 +202,6 @@ function Mark:prev_mark()
   if not self.buffers[bufnr] then
     return
     end
-  self:validate_marks(bufnr)
   if vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
     return
   end
@@ -316,7 +262,6 @@ function Mark:buffer_to_loclist(bufnr)
     return
   end
 
-  self:validate_marks(bufnr)
   local items = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
@@ -330,7 +275,6 @@ end
 function Mark:all_to_loclist()
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
-    self:validate_marks(bufnr)
     for mark, data in pairs(buffer_state.placed_marks) do
       local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
       table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col,
@@ -344,7 +288,6 @@ end
 function Mark:global_to_loclist()
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
-    self:validate_marks(bufnr)
     for mark, data in pairs(buffer_state.placed_marks) do
       if utils.is_upper(mark) then
         local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
@@ -359,32 +302,49 @@ end
 
 function Mark:toggle_signs()
   self.opt.signs = not self.opt.signs
-  self:on_load()
+  self:refresh()
 end
 
-function Mark:on_load()
-  local bufnr = a.nvim_get_current_buf()
+function Mark:refresh(bufnr)
+  local bufnr = bufnr or a.nvim_get_current_buf()
   if not self.buffers[bufnr] then
     self.buffers[bufnr] = { placed_marks = {}, 
                          marks_by_line = {},
                          lowest_available_mark = "a" }
   end
-  -- clear all signs
-  utils.remove_buf_signs(bufnr)
-  -- see what marks are already present in the buffer
-  -- lowercase alphabet
-  for char=97,122 do
-    local pos = vim.fn.getpos("'" .. string.char(char))
-    if pos[2] ~= 0 then
-      self:register_mark(string.char(char), pos[2], pos[3], bufnr)
+
+  -- first, remove all marks that were deleted
+  for mark, data in pairs(self.buffers[bufnr].placed_marks) do
+    if vim.fn.getpos("'" .. mark)[2] == 0 then
+      self:delete_mark(mark, false)
     end
   end
 
-  -- uppercase alphabet
-  for char=64,90 do
-    local pos = vim.fn.getpos("'" .. string.char(char))
-    if pos[1] == bufnr and pos[2] ~= 0 then
-      self:register_mark(string.char(char), pos[2], pos[3], bufnr)
+  local mark
+  local pos
+  local cached_mark
+
+  -- uppercase marks
+  for _, data in ipairs(vim.fn.getmarklist()) do
+    mark = data.mark:sub(2,3)
+    pos = data.pos
+    cached_mark = self.buffers[bufnr].placed_marks[mark]
+
+    if utils.is_upper(mark) and pos[1] == bufnr and (not cached_mark or
+        pos[2] ~= cached_mark.line) then
+      self:register_mark(mark, pos[2], pos[3], bufnr)
+    end
+  end
+
+  -- lowercase
+  for _, data in ipairs(vim.fn.getmarklist("%")) do
+    mark = data.mark:sub(2, 3)
+    pos = data.pos
+    cached_mark = self.buffers[bufnr].placed_marks[mark]
+
+    if utils.is_lower(mark) and (not cached_mark or
+        pos[2] ~= cached_mark.line) then
+      self:register_mark(mark, pos[2], pos[3], bufnr)
     end
   end
 
@@ -396,48 +356,6 @@ function Mark:on_load()
     end
   end
   return
-end
-
-function Mark:refresh_insert_marks()
-  local bufnr = a.nvim_get_current_buf()
-  if not self.buffers[bufnr] then
-    return
-  end
-  for _, mark in pairs(self.builtin_marks) do
-    if utils.is_insert_mark(mark) then
-      local pos = vim.fn.getpos("'" .. mark)
-      local cached_pos = self.buffers[bufnr].placed_marks[mark]
-      -- update if:
-      -- mark exists but is not registered, or
-      -- mark is registered but has changed position
-      if not cached_pos and pos[2] ~= 0 then
-        self:register_mark(mark, pos[2], pos[3], bufnr)
-      elseif cached_pos and line ~= 0 and line ~= cached_pos.line then
-        self:register_mark(mark, pos[2], pos[3], bufnr)
-      end
-    end
-  end
-end
-
-function Mark:refresh_movement_marks()
-  local bufnr = a.nvim_get_current_buf()
-  if not self.buffers[bufnr] then
-    return
-  end
-  for _, mark in pairs(self.builtin_marks) do
-    if utils.is_movement_mark(mark) then
-      local pos = vim.fn.getpos("'" .. mark)
-      local cached_pos = self.buffers[bufnr].placed_marks[mark]
-      -- update if:
-      -- mark exists but is not registered, or
-      -- mark is registered but has changed position
-      if not cached_pos and pos[2] ~= 0 then
-        self:register_mark(mark, pos[2], pos[3], bufnr)
-      elseif cached_pos and pos[2] ~= 0 and line ~= cached_pos.line then
-        self:register_mark(mark, pos[2], pos[3], bufnr)
-      end
-    end
-  end
 end
 
 function Mark.new()
