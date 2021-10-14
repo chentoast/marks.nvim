@@ -129,13 +129,65 @@ function Mark:delete_mark(mark, clear)
   end
 end
 
+function Mark:validate_marks(bufnr)
+  local bufnr = bufnr or a.nvim_get_current_buf()
+  local buffer = self.buffers[bufnr]
+
+  -- update position in case buffer text has changed
+  local deleted_marks = {}
+  for mark, mark_data in pairs(buffer.placed_marks) do
+    local line = vim.fn.getpos("'" .. mark)[2]
+
+    if line == 0 then -- mark was deleted
+      for key, mark_tmp in pairs(buffer.marks_by_line[mark_data.line]) do
+        if mark_tmp == mark then
+          buffer.marks_by_line[mark_data.line][key] = nil
+          break
+        end
+      end
+      if vim.tbl_isempty(buffer.marks_by_line[mark_data.line]) then
+        buffer.marks_by_line[mark_data.line] = nil
+      end
+
+      table.insert(deleted_marks, mark)
+    elseif line ~= mark_data.line then
+
+      if buffer.marks_by_line[line] then
+        table.insert(buffer.marks_by_line[line], mark)
+      else
+        buffer.marks_by_line[line] = { mark }
+      end
+
+      for key, mark_tmp in pairs(buffer.marks_by_line[mark_data.line]) do
+        if mark_tmp == mark then
+          buffer.marks_by_line[mark_data.line][key] = nil
+          break
+        end
+      end
+      if vim.tbl_isempty(buffer.marks_by_line[mark_data.line]) then
+        buffer.marks_by_line[mark_data.line] = nil
+      end
+
+      mark_data.line = line
+    end
+  end
+  for _, mark in ipairs(deleted_marks) do
+    buffer.placed_marks[mark] = nil
+    if utils.is_lower(mark) and mark:byte() < buffer.lowest_available_mark:byte() then
+      buffer.lowest_available_mark = mark
+    end
+  end
+end
+
 function Mark:delete_line_marks()
   local bufnr = a.nvim_get_current_buf()
   local pos = vim.fn.getpos(".")
+
+  self:validate_marks(bufnr)
   if not self.buffers[bufnr].marks_by_line[pos[2]] then
     return
   end
- 
+
   -- delete_mark modifies the table, so make a copy
   local copy = vim.tbl_values(self.buffers[bufnr].marks_by_line[pos[2]])
   for _, mark in pairs(copy) do
@@ -169,8 +221,12 @@ end
 
 function Mark:next_mark()
   local bufnr = a.nvim_get_current_buf()
-  if (not self.buffers[bufnr]) or
-      vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
+
+  if not self.buffers[bufnr] then
+    return
+    end
+  self:validate_marks(bufnr)
+  if vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
     return
   end
 
@@ -195,8 +251,12 @@ end
 
 function Mark:prev_mark()
   local bufnr = a.nvim_get_current_buf()
-  if (not self.buffers[bufnr]) or
-      vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
+
+  if not self.buffers[bufnr] then
+    return
+    end
+  self:validate_marks(bufnr)
+  if vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
     return
   end
 
@@ -223,7 +283,7 @@ function Mark:preview_mark()
 
   local mark = vim.fn.getchar()
   if mark == 13 then -- <cr>
-    mark = self:get_next_mark(bufnr, vim.fn.getpos(".")[2])
+    mark = self:next_mark(bufnr, vim.fn.getpos(".")[2])
   else
     mark = string.char(mark)
   end
@@ -256,6 +316,7 @@ function Mark:buffer_to_loclist(bufnr)
     return
   end
 
+  self:validate_marks(bufnr)
   local items = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
@@ -269,6 +330,7 @@ end
 function Mark:all_to_loclist()
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
+    self:validate_marks(bufnr)
     for mark, data in pairs(buffer_state.placed_marks) do
       local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
       table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col,
@@ -282,6 +344,7 @@ end
 function Mark:global_to_loclist()
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
+    self:validate_marks(bufnr)
     for mark, data in pairs(buffer_state.placed_marks) do
       if utils.is_upper(mark) then
         local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]

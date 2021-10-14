@@ -11,16 +11,14 @@ local Bookmarks = {}
 -- each mark is represented by a table with the following keys:
 --  buf, line, col, sign_id, extmark_id
 --
-local function group_under_cursor(groups, bufnr, pos)
+local function group_under_cursor(group, bufnr, pos)
   local bufnr = bufnr or vim.api.nvim_get_current_buf()
   local pos = pos or vim.fn.getpos(".")
 
-  for group_nr, group in pairs(groups) do
-    if group.marks[bufnr] and group.marks[bufnr][pos[2]] then
-      return group_nr
-    end
+  if group.marks[bufnr] and group.marks[bufnr][pos[2]] then
+    return true
   end
-  return nil
+  return false
 end
 
 local function flatten(marks)
@@ -105,11 +103,37 @@ function Bookmarks:delete_mark(group_nr, bufnr, lnum)
   group.marks[bufnr][lnum] = nil
 end
 
+function Bookmarks:validate_bookmarks(group_nr, bufnr)
+  local bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if not self.groups[group_nr] or not self.groups[group_nr].marks[bufnr] then
+    return
+  end
+  
+  local buf_marks = self.groups[group_nr].marks[bufnr]
+  for _, mark in pairs(vim.tbl_values(buf_marks)) do
+    local line = vim.api.nvim_buf_get_extmark_by_id(bufnr, self.groups[group_nr].ns,
+        mark.extmark_id, {})[1]
+    if line + 1 ~= mark.line then
+      buf_marks[line + 1] = mark
+      buf_marks[mark.line] = nil
+      buf_marks[line + 1].line = line + 1
+    end
+  end
+end
+
 function Bookmarks:delete_mark_cursor()
   local bufnr = vim.api.nvim_get_current_buf()
   local pos = vim.fn.getpos(".")
 
-  local group_nr = group_under_cursor(self.groups, bufnr, pos)
+  local group_nr
+  for num, group in pairs(self.groups) do
+    self:validate_bookmarks(num, bufnr)
+    if group_under_cursor(group, bufnr, pos) then
+      group_nr = num
+      break
+    end
+  end
+
   self:delete_mark(group_nr, bufnr, pos[2])
 end
 
@@ -120,6 +144,7 @@ function Bookmarks:delete_all(group_nr)
   end
 
   for bufnr, buf_marks in pairs(group.marks) do
+    -- self:validate_bookmarks(group_nr, bufnr)
     for line, mark in pairs(buf_marks) do
       if mark.sign_id then
         utils.remove_sign(bufnr, mark.sign_id, "BookmarkSigns")
@@ -136,11 +161,19 @@ function Bookmarks:next(group_nr)
   local pos = vim.fn.getpos(".")
 
   if not group_nr then
-    group_nr = group_under_cursor(self.groups, bufnr, pos)
+    for num, group in pairs(self.groups) do
+      print(num)
+      self:validate_bookmarks(num, bufnr)
+      if group_under_cursor(group, bufnr, pos) then
+        group_nr = num
+        break
+      end
+    end
+  else
+    self:validate_bookmarks(group_nr, bufnr)
   end
 
   local group = self.groups[group_nr]
-
   if not group then
     return
   end
@@ -169,18 +202,25 @@ function Bookmarks:next(group_nr)
 end
 
 function Bookmarks:prev(group_nr)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local pos = vim.fn.getpos(".")
+
   if not group_nr then
-    group_nr = group_under_cursor(self.groups, bufnr, pos)
+    for num, group in pairs(self.groups) do
+      self:validate_bookmarks(num, bufnr)
+      if group_under_cursor(group, bufnr, pos) then
+        group_nr = num
+        break
+      end
+    end
+  else
+    self:validate_bookmarks(group_nr, bufnr)
   end
 
   local group = self.groups[group_nr]
-
   if not group then
     return
   end
-
-  local bufnr = vim.api.nvim_get_current_buf()
-  local pos = vim.fn.getpos(".")
 
   local marks = flatten(group.marks)
 
