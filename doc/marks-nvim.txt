@@ -101,6 +101,16 @@ plugin. The following options are defined:
     This option can be destructive and should be set only after reading more
     about the shada file.
 
+                                                      *marks-refresh_interval*
+  refresh_interval: integer
+    (default 150)
+
+    How often (in ms) marks.nvim should update the marks list and recompute
+    mark positions/redraw signs. Lower values means that mark positions and
+    signs will refresh much quicker, but may incur a higher performance
+    penalty, whereas higher values may result in better performance, but may
+    also cause noticable lag in signs updating.
+
   bookmark_[0-9]: table                              *marks-bookmark_config*
     (default {})
 

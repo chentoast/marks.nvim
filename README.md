@@ -36,6 +36,9 @@ require'marks'.setup {
   builtin_marks = { ".", "<", ">", "^" }, -- which builtin marks to show. default {}
   cyclic = true, -- whether movements cycle back to the beginning/end of buffer. default true
   force_write_shada = false, -- whether the shada file is updated after modifying uppercase marks. default false
+  refresH_interval = 250, -- how often (in ms) to redraw signs/recompute mark positions. 
+                          -- higher values will have better performance but may cause visual lag, 
+                          -- while lower values may cause performance penalties.
   bookmark_0 = { -- marks.nvim allows you to configure up to 10 bookmark groups, each with its own sign/virttext
     sign = "⚑",
     virt_text = "hello world"
