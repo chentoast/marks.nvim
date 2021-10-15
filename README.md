@@ -165,7 +165,7 @@ See `:help marks-mappings` for more information.
 
 marks.nvim defines the following highlight groups:
 
-`MarksSignHL` The highlight group for displayed mark signs.
+`MarkSignHL` The highlight group for displayed mark signs.
 
 `MarkNumSignHL` The highlight group for the number line in a signcolumn.
 
