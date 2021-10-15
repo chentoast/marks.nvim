@@ -62,7 +62,7 @@ function Bookmarks:place_mark(group_nr, bufnr)
 
   if group.sign then
     local id = group.sign:byte() * 100 + pos[2]
-    utils.add_sign(bufnr, group.sign, pos[2], id, "BookmarkSigns")
+    self:add_sign(bufnr, group.sign, pos[2], id)
     data.sign_id = id
   end
 
@@ -230,7 +230,7 @@ function Bookmarks:refresh()
         buf_marks[mark.line] = nil
         buf_marks[line + 1].line = line + 1
       end
-      utils.add_sign(bufnr, group.sign, line + 1, mark.sign_id, "BookmarkSigns")
+      self:add_sign(bufnr, group.sign, line + 1, mark.sign_id)
     end
   end
 end
@@ -264,6 +264,10 @@ function Bookmarks:all_to_loclist()
   end
 
   vim.fn.setloclist(0, items, "r")
+end
+
+function Bookmarks:add_sign(bufnr, text, line, id)
+  utils.add_sign(bufnr, text, line, id, "BookmarkSigns", self.priority)
 end
 
 function Bookmarks.new()

@@ -170,6 +170,21 @@ function M.setup(config)
   M.mark_state.opt.signs = utils.option_nil(config.signs, true)
   M.mark_state.opt.force_write_shada = utils.option_nil(config.force_write_shada, false)
   M.mark_state.opt.cyclic = utils.option_nil(config.cyclic, true)
+
+  M.mark_state.opt.priority = { 10, 10, 10 }
+  local mark_priority = M.mark_state.opt.priority
+  if type(config.sign_priority) == "table" then
+    mark_priority[1] = config.sign_priority.lower or mark_priority[1]
+    mark_priority[2] = config.sign_priority.upper or mark_priority[2]
+    mark_priority[3] = config.sign_priority.builtin or mark_priority[3]
+    M.bookmark_state.priority = config.sign_priority.bookmark or 10
+  elseif type(config.sign_priority) == "number" then
+    mark_priority[1] = config.sign_priority
+    mark_priority[2] = config.sign_priority
+    mark_priority[3] = config.sign_priority
+    M.bookmark_state.priority = config.sign_priority
+  end
+
   local refresh_interval = utils.option_nil(config.refresh_interval, 150)
 
   local marks_timer = vim.loop.new_timer()
