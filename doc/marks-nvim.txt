@@ -111,6 +111,19 @@ plugin. The following options are defined:
     penalty, whereas higher values may result in better performance, but may
     also cause noticable lag in signs updating.
 
+                                                         *marks-sign_priority*
+  sign_priority: integer | table
+    (default 10)
+
+    The sign priority to be used for marks. Can either be a number, in which
+    case the priority applies to all types of marks, or a table with some or
+    all of the following keys:
+
+      lower: sign priority for lowercase marks
+      upper: sign priority for uppercase marks
+      builtin: sign priority for builtin marks
+      bookmark: sign priority for bookmarks
+
   bookmark_[0-9]: table                              *marks-bookmark_config*
     (default {})
 

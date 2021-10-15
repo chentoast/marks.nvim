@@ -35,10 +35,10 @@ function Mark:register_mark(mark, line, col, bufnr)
   end
   buffer.placed_marks[mark] = { line = line, col = col, id = -1 }
 
-  if self.opt.signs and utils.is_valid_mark(mark) then
+  if self.opt.signs then
     local id = mark:byte() * 100
     buffer.placed_marks[mark].id = id
-    utils.add_sign(bufnr, mark, line, id)
+    self:add_sign(bufnr, mark, line, id)
   end
 
   if not utils.is_lower(mark) or
@@ -356,6 +356,18 @@ function Mark:refresh(bufnr)
     end
   end
   return
+end
+
+function Mark:add_sign(bufnr, text, line, id)
+  local priority
+  if utils.is_lower(text) then
+    priority = self.opt.priority[1]
+  elseif utils.is_upper(text) then
+    priority = self.opt.priority[2]
+  else -- builtin
+    priority = self.opt.priority[3]
+  end
+  utils.add_sign(bufnr, text, line, id, "MarkSigns", priority)
 end
 
 function Mark.new()

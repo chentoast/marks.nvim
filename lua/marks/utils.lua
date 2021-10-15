@@ -3,22 +3,15 @@ local builtin_marks = { ["."] = true, ["^"] = true, ["`"] = true, ["'"] = true,
                         ['"'] = true, ["<"] = true, [">"] = true, ["["] = true,
                         ["]"] = true }
 
--- marks updated after InsertLeave
-local insert_marks = { ["."] = true, ["^"] = true }
--- marks updated after CursorMoved
-local movement_marks = { ["`"] = true, ["'"] = true,
-                        ['"'] = true, ["<"] = true, [">"] = true, ["["] = true,
-                        ["]"] = true }
-
-function M.add_sign(bufnr, text, line, id, group)
-  local group = group or "MarkSigns"
+function M.add_sign(bufnr, text, line, id, group, priority)
+  local priority = priority or 10
   local sign_name = "Marks_" .. text
   if not M.sign_cache[sign_name] then
     M.sign_cache[sign_name] = true
     vim.fn.sign_define(sign_name, { text = text, texthl = "MarkSignHL",
                                     numhl = "MarkSignNumHL" })
   end
-  vim.fn.sign_place(id, group, sign_name, bufnr, { lnum = line })
+  vim.fn.sign_place(id, group, sign_name, bufnr, { lnum = line, priority = priority })
 end
 
 function M.remove_sign(bufnr, id, group)
@@ -70,14 +63,6 @@ end
 
 function M.is_lower(char)
   return (97 <= char:byte() and char:byte() <= 122)
-end
-
-function M.is_insert_mark(mark)
-  return insert_marks[mark]
-end
-
-function M.is_movement_mark(mark)
-  return movement_marks[mark]
 end
 
 function M.option_nil(option, default)
