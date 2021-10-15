@@ -272,12 +272,12 @@ on the functionality of each mapping):
 marks.nvim defines the following highlight groups. For more information,
 see |sign_define()|.
 
-*MarksSignHL*
+*MarkSignHL*
   (defaults to |Identifier|)
 
   The highlight group for displayed mark signs.
 
-*MarkNumSignHL*
+*MarkSignNumHL*
   (defaults to |LineNr|)
 
   The highlight group for the number line in a signcolumn: see
