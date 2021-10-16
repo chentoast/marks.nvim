@@ -85,43 +85,37 @@ function M.prev_bookmark()
 end
 
 M.mappings = {
-  ["m"] = "set",
-  ["m,"] = "set_next",
-  ["m;"] = "toggle",
-  ["m]"] = "next",
-  ["m["] = "prev",
-  ["m:"] = "preview",
-  ["m}"] = "next_bookmark",
-  ["m{"] = "prev_bookmark",
-  ["dm"] = "delete",
-  ["dm-"] = "delete_line",
-  ["dm="] = "delete_bookmark",
-  ["dm<space>"] = "delete_buf"
+  set = "m",
+  set_next = "m,",
+  toggle = "m;",
+  next = "m]",
+  prev = "m[",
+  preview = "m:",
+  next_bookmark = "m}",
+  prev_bookmark = "m{",
+  delete = "dm",
+  delete_line = "dm-",
+  delete_bookmark = "dm=",
+  delete_buf = "dm<space>"
 }
 
 for i=0,9 do
-  M.mappings["m"..tostring(i)] = "set_bookmark" .. i
-  M.mappings["dm"..tostring(i)] = "delete_bookmark" .. i
+  M.mappings["set_bookmark" .. i] = "m"..tostring(i)
+  M.mappings["delete_bookmark" .. i] = "dm"..tostring(i)
 end
 
 local function user_mappings(config)
-  local inverse = {}
-  for key, cmd in pairs(M.mappings) do
-    inverse[cmd] = key
-  end
-
   for cmd, key in pairs(config.mappings) do
-    if inverse[cmd] then
-      M.mappings[inverse[cmd]] = nil
-    end
     if key ~= false then
-      M.mappings[key] = cmd
+      M.mappings[cmd] = key
+    else
+      M.mappings[cmd] = nil
     end
   end
 end
 
 local function apply_mappings()
-  for key, cmd in pairs(M.mappings) do
+  for cmd, key in pairs(M.mappings) do
     vim.cmd("nnoremap <silent> "..key.." <cmd>lua require'marks'."..cmd.."()<cr>")
   end
 end
