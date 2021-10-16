@@ -58,6 +58,12 @@ function Bookmarks:place_mark(group_nr, bufnr)
   end
 
   local pos = vim.fn.getpos(".")
+
+  if group.marks[bufnr] and group.marks[bufnr][pos[2]] then
+    -- disallow multiple bookmarks on a single line
+    return
+  end
+
   local data = { buf = bufnr, line = pos[2], col = pos[3], sign_id = -1}
 
   if group.sign then
@@ -218,19 +224,18 @@ function Bookmarks:refresh()
   utils.remove_buf_signs(bufnr, "BookmarkSigns")
   for group_nr, group in pairs(self.groups) do
     buf_marks = group.marks[bufnr]
-    if not buf_marks then
-      return
-    end
-    for _, mark in pairs(vim.tbl_values(buf_marks)) do
-      local line = vim.api.nvim_buf_get_extmark_by_id(bufnr, group.ns,
-          mark.extmark_id, {})[1]
+    if buf_marks then
+      for _, mark in pairs(vim.tbl_values(buf_marks)) do
+        local line = vim.api.nvim_buf_get_extmark_by_id(bufnr, group.ns,
+            mark.extmark_id, {})[1]
 
-      if line + 1 ~= mark.line then
-        buf_marks[line + 1] = mark
-        buf_marks[mark.line] = nil
-        buf_marks[line + 1].line = line + 1
+        if line + 1 ~= mark.line then
+          buf_marks[line + 1] = mark
+          buf_marks[mark.line] = nil
+          buf_marks[line + 1].line = line + 1
+        end
+        self:add_sign(bufnr, group.sign, line + 1, mark.sign_id)
       end
-      self:add_sign(bufnr, group.sign, line + 1, mark.sign_id)
     end
   end
 end
