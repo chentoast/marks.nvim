@@ -108,7 +108,6 @@ require'marks'.setup {
 The following keys are available to be passed to the mapping table:
 
 ```
-  leader                 Prefixes all commands. also handles setting and deleting named marks.
   set_next               Set next available lowercase mark at cursor.
   toggle                 Toggle next available mark at cursor.
   delete_line            Deletes all marks on current line.
@@ -116,11 +115,9 @@ The following keys are available to be passed to the mapping table:
   next                   Goes to next mark in buffer.
   prev                   Goes to previous mark in buffer.
   preview                Previews mark (will wait for user input). press <cr> to just preview the next mark.
-  set                    Sets a letter mark (will wait for input). the leader key implements this functionality by default,
-                         so you only need to set this if you disable the leader (see below)
-  delete                 Delete a letter mark (will wait for input). just like 'set', this is automatically handled if
-                         the leader key is present, so only set this if the leader is disabled.
-                
+  set                    Sets a letter mark (will wait for input).
+  delete                 Delete a letter mark (will wait for input).
+
   set_bookmark[0-9]      Sets a bookmark from group[0-9].
   delete_bookmark[0-9]   Deletes all bookmarks from group[0-9].
   delete_bookmark        Deletes the bookmark under the cursor.
