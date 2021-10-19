@@ -55,8 +55,8 @@ end
 function Mark:place_mark_cursor(mark)
   local bufnr = a.nvim_get_current_buf()
 
-  local pos = vim.fn.getpos(".")
-  self:register_mark(mark, pos[2], pos[3], bufnr)
+  local pos = a.nvim_win_get_cursor(0)
+  self:register_mark(mark, pos[1], pos[2], bufnr)
 end
 
 function Mark:place_next_mark(line, col)
@@ -74,8 +74,8 @@ function Mark:place_next_mark(line, col)
 end
 
 function Mark:place_next_mark_cursor()
-  local pos = vim.fn.getpos(".")
-  self:place_next_mark(pos[2], pos[3])
+  local pos = a.nvim_win_get_cursor(0)
+  self:place_next_mark(pos[1], pos[2])
 end
 
 function Mark:delete_mark(mark, clear)
@@ -130,14 +130,14 @@ end
 
 function Mark:delete_line_marks()
   local bufnr = a.nvim_get_current_buf()
-  local pos = vim.fn.getpos(".")
+  local pos = a.nvim_win_get_cursor(0)
 
-  if not self.buffers[bufnr].marks_by_line[pos[2]] then
+  if not self.buffers[bufnr].marks_by_line[pos[1]] then
     return
   end
 
   -- delete_mark modifies the table, so make a copy
-  local copy = vim.tbl_values(self.buffers[bufnr].marks_by_line[pos[2]])
+  local copy = vim.tbl_values(self.buffers[bufnr].marks_by_line[pos[1]])
   for _, mark in pairs(copy) do
     self:delete_mark(mark)
   end
@@ -145,12 +145,12 @@ end
 
 function Mark:toggle_mark_cursor()
   local bufnr = a.nvim_get_current_buf()
-  local pos = vim.fn.getpos(".")
+  local pos = a.nvim_win_get_cursor(0)
 
-  if self.buffers[bufnr].marks_by_line[pos[2]] then
+  if self.buffers[bufnr].marks_by_line[pos[1]] then
     self:delete_line_marks()
   else
-    self:place_next_mark(pos[2], pos[3])
+    self:place_next_mark(pos[1], pos[2])
   end
 end
 
@@ -177,7 +177,7 @@ function Mark:next_mark()
     return
   end
 
-  local line = vim.fn.getpos(".")[2]
+  local line = a.nvim_win_get_cursor(0)[1]
   local marks = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     if utils.is_letter(mark) then
@@ -192,7 +192,7 @@ function Mark:next_mark()
   local next = utils.search(marks, {line=line}, {line=math.huge}, comparator, self.opt.cyclic)
 
   if next then
-    vim.fn.setpos(".", { 0, next.line, next.col, 0 })
+    a.nvim_win_set_cursor(0, { next.line, next.col })
   end
 end
 
@@ -206,7 +206,7 @@ function Mark:prev_mark()
     return
   end
 
-  local line = vim.fn.getpos(".")[2]
+  local line = a.nvim_win_get_cursor(0)[1]
   local marks = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     if utils.is_letter(mark) then
@@ -220,7 +220,7 @@ function Mark:prev_mark()
   local prev = utils.search(marks, {line=line}, {line=-1}, comparator, self.opt.cyclic)
 
   if prev then
-    vim.fn.setpos(".", { 0, prev.line, prev.col, 0 })
+    a.nvim_win_set_cursor(0, { prev.line, prev.col })
   end
 end
 
@@ -229,7 +229,7 @@ function Mark:preview_mark()
 
   local mark = vim.fn.getchar()
   if mark == 13 then -- <cr>
-    mark = self:next_mark(bufnr, vim.fn.getpos(".")[2])
+    mark = self:next_mark(bufnr, a.nvim_win_get_cursor(0)[2])
   else
     mark = string.char(mark)
   end
@@ -265,7 +265,7 @@ function Mark:buffer_to_loclist(bufnr)
   local items = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
-    table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col,
+    table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col + 1,
         text = "mark " .. mark .. ": " .. text})
   end
 
@@ -277,7 +277,7 @@ function Mark:all_to_loclist()
   for bufnr, buffer_state in pairs(self.buffers) do
     for mark, data in pairs(buffer_state.placed_marks) do
       local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
-      table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col,
+      table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col + 1,
           text = "mark " .. mark .. ": " .. text})
     end
   end
@@ -291,7 +291,7 @@ function Mark:global_to_loclist()
     for mark, data in pairs(buffer_state.placed_marks) do
       if utils.is_upper(mark) then
         local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
-        table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col,
+        table.insert(items, { bufnr = bufnr, lnum = data.line, col = data.col + 1,
             text = "mark " .. mark .. ": " .. text})
       end
     end
@@ -315,7 +315,7 @@ function Mark:refresh(bufnr)
 
   -- first, remove all marks that were deleted
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
-    if vim.fn.getpos("'" .. mark)[2] == 0 then
+    if a.nvim_buf_get_mark(bufnr, mark)[1] == 0 then
       self:delete_mark(mark, false)
     end
   end
