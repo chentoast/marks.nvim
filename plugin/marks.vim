@@ -5,7 +5,7 @@ let g:loaded_marks = 1
 
 hi default link MarkSignHL Identifier
 " hi default link MarkSignLineHL Normal
-hi default link MarkSignNumHL LineNr
+hi default link MarkSignNumHL CursorLineNr
 hi default link MarkVirtTextHL Comment
 
 command! MarksToggleSigns lua require'marks'.mark_state:toggle_signs()
