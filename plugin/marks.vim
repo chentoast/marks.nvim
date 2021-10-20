@@ -8,7 +8,7 @@ hi default link MarkSignHL Identifier
 hi default link MarkSignNumHL CursorLineNr
 hi default link MarkVirtTextHL Comment
 
-command! MarksToggleSigns lua require'marks'.mark_state:toggle_signs()
+command! -nargs=? MarksToggleSigns silent lua require'marks'.toggle_signs(<args>)
 command! MarksListBuf exe "lua require'marks'.mark_state:buffer_to_loclist()" | lopen
 command! MarksListGlobal exe "lua require'marks'.mark_state:global_to_loclist()" | lopen
 command! MarksListAll exe "lua require'marks'.mark_state:all_to_loclist()" | lopen

@@ -60,7 +60,7 @@ function M.prev()
 end
 
 function M.refresh()
-  M.mark_state:refresh()
+  M.mark_state:refresh(nil, true)
   M.bookmark_state:refresh()
 end
 
@@ -75,6 +75,28 @@ function M._on_delete()
   for _, group in pairs(M.bookmark_state.groups) do
     group.marks[bufnr] = nil
   end
+end
+
+function M.toggle_signs(bufnr)
+  if not bufnr then
+    M.mark_state.opt.signs = not M.mark_state.opt.signs
+    M.bookmark_state.opt.signs = not M.bookmark_state.opt.signs
+
+    for buf, _ in pairs(M.mark_state.opt.buf_signs) do
+      M.mark_state.opt.buf_signs[buf] = M.mark_state.opt.signs
+    end
+
+    for buf, _ in pairs(M.bookmark_state.opt.buf_signs) do
+      M.bookmark_state.opt.buf_signs[buf] = M.bookmark_state.opt.signs
+    end
+  else
+    M.mark_state.opt.buf_signs[bufnr] = not utils.option_nil(
+        M.mark_state.opt.buf_signs[bufnr], M.mark_state.opt.signs)
+    M.bookmark_state.opt.buf_signs[bufnr] = not utils.option_nil(
+        M.bookmark_state.opt.buf_signs[bufnr], M.bookmark_state.opt.signs)
+  end
+
+  M.refresh()
 end
 
 -- set_group[0-9] functions
@@ -146,7 +168,7 @@ end
 local function setup_autocommands()
   vim.cmd [[augroup Marks_autocmds
     autocmd!
-    autocmd BufRead,BufNewFile * lua require'marks'.mark_state:refresh()
+    autocmd BufEnter * lua require'marks'.refresh()
     autocmd BufDelete * lua require'marks'._on_delete()
   augroup end]]
 end
@@ -170,12 +192,15 @@ function M.setup(config)
           M.bookmark_state.virt_text[i]
     end
   end
+  M.bookmark_state.opt.signs = true
+  M.bookmark_state.opt.buf_signs = {}
 
   config.default_mappings = utils.option_nil(config.default_mappings, true)
   setup_mappings(config)
   setup_autocommands()
 
   M.mark_state.opt.signs = utils.option_nil(config.signs, true)
+  M.mark_state.opt.buf_signs = {}
   M.mark_state.opt.force_write_shada = utils.option_nil(config.force_write_shada, false)
   M.mark_state.opt.cyclic = utils.option_nil(config.cyclic, true)
 

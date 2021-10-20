@@ -35,7 +35,8 @@ function Mark:register_mark(mark, line, col, bufnr)
   end
   buffer.placed_marks[mark] = { line = line, col = col, id = -1 }
 
-  if self.opt.signs then
+  local display_signs = utils.option_nil(self.opt.buf_signs[bufnr], self.opt.signs)
+  if display_signs then
     local id = mark:byte() * 100
     buffer.placed_marks[mark].id = id
     self:add_sign(bufnr, mark, line, id)
@@ -62,9 +63,9 @@ end
 function Mark:place_next_mark(line, col)
   local bufnr = a.nvim_get_current_buf()
   if not self.buffers[bufnr] then
-    self.buffers[bufnr] = { placed_marks = {},
-                 marks_by_line = {},
-                 lowest_available_mark = "a" }
+    self.buffers[bufnr] = {placed_marks = {},
+                           marks_by_line = {},
+                           lowest_available_mark = "a" }
   end
 
   local mark = self.buffers[bufnr].lowest_available_mark
@@ -306,12 +307,13 @@ function Mark:toggle_signs()
   self:refresh()
 end
 
-function Mark:refresh(bufnr)
+function Mark:refresh(bufnr, force)
+  force = force or false
   bufnr = bufnr or a.nvim_get_current_buf()
   if not self.buffers[bufnr] then
     self.buffers[bufnr] = { placed_marks = {},
-                         marks_by_line = {},
-                         lowest_available_mark = "a" }
+                            marks_by_line = {},
+                            lowest_available_mark = "a" }
   end
 
   -- first, remove all marks that were deleted
@@ -331,7 +333,7 @@ function Mark:refresh(bufnr)
     pos = data.pos
     cached_mark = self.buffers[bufnr].placed_marks[mark]
 
-    if utils.is_upper(mark) and pos[1] == bufnr and (not cached_mark or
+    if utils.is_upper(mark) and pos[1] == bufnr and (force or not cached_mark or
         pos[2] ~= cached_mark.line) then
       self:register_mark(mark, pos[2], pos[3], bufnr)
     end
@@ -343,7 +345,7 @@ function Mark:refresh(bufnr)
     pos = data.pos
     cached_mark = self.buffers[bufnr].placed_marks[mark]
 
-    if utils.is_lower(mark) and (not cached_mark or
+    if utils.is_lower(mark) and (force or not cached_mark or
         pos[2] ~= cached_mark.line) then
       self:register_mark(mark, pos[2], pos[3], bufnr)
     end
@@ -352,7 +354,7 @@ function Mark:refresh(bufnr)
   -- builtin marks
   for _, char in pairs(self.builtin_marks) do
     pos = vim.fn.getpos("'" .. char)
-    if pos[2] ~= 0 and pos[1] == 0 then
+    if force or (pos[2] ~= 0 and pos[1] == 0) then
       self:register_mark(char, pos[2], pos[3], bufnr)
     end
   end

@@ -290,9 +290,11 @@ see |sign_define()|.
 
 marks.nvim also defines the following commands:
 
-*:MarksToggleSigns*
+*:MarksToggleSigns* [ buffer]
 
-Toggle signs in the buffer
+Toggle signs for marks and bookmarks. By default, globally toggles signs, but
+also Accepts an optional buffer number argument to toggle signs for that
+buffer only.
 
 *:MarksListBuf*
 
