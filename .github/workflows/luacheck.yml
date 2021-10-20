@@ -1,0 +1,25 @@
+name: LuaCheck
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # install lua and luarocks
+      - uses: leafo/gh-actions-lua@v8
+      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: install_luacheck
+        run: luarocks install luacheck
+        
+      - name: run_luacheck
+        run: luacheck lua/marks
