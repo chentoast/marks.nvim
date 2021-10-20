@@ -172,9 +172,6 @@ function Mark:next_mark()
 
   if not self.buffers[bufnr] then
     return
-    end
-  if vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
-    return
   end
 
   local line = a.nvim_win_get_cursor(0)[1]
@@ -183,6 +180,10 @@ function Mark:next_mark()
     if utils.is_letter(mark) then
       marks[mark] = data
     end
+  end
+
+  if vim.tbl_isempty(marks) then
+    return
   end
 
   local function comparator(a, b, key)
@@ -201,9 +202,6 @@ function Mark:prev_mark()
 
   if not self.buffers[bufnr] then
     return
-    end
-  if vim.tbl_isempty(self.buffers[bufnr].placed_marks) then
-    return
   end
 
   local line = a.nvim_win_get_cursor(0)[1]
@@ -212,6 +210,10 @@ function Mark:prev_mark()
     if utils.is_letter(mark) then
       marks[mark] = data
     end
+  end
+
+  if vim.tbl_isempty(marks) then
+    return
   end
 
   local function comparator(a, b, key)
