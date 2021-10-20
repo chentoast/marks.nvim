@@ -13,8 +13,8 @@ local Bookmarks = {}
 --  buf, line, col, sign_id, extmark_id
 --
 local function group_under_cursor(groups, bufnr, pos)
-  local bufnr = bufnr or a.nvim_get_current_buf()
-  local pos = pos or a.nvim_win_get_cursor(0)
+  bufnr = bufnr or a.nvim_get_current_buf()
+  pos = pos or a.nvim_win_get_cursor(0)
 
   for group_nr, group in pairs(groups) do
     if group.marks[bufnr] and group.marks[bufnr][pos[1]] then
@@ -27,17 +27,17 @@ end
 local function flatten(marks)
   local ret = {}
 
-  for bufnr, buf_marks in pairs(marks) do
-    for line, mark in pairs(buf_marks) do
+  for _, buf_marks in pairs(marks) do
+    for _, mark in pairs(buf_marks) do
       table.insert(ret, mark)
     end
   end
 
-  function cmp(a, b)
-    return (a.buf == b.buf and a.line < b.line) or (a.buf < b.buf)
+  local function comparator(x, y)
+    return (x.buf == y.buf and x.line < y.line) or (x.buf < y.buf)
   end
 
-  table.sort(ret, cmp)
+  table.sort(ret, comparator)
   return ret
 end
 
@@ -50,7 +50,7 @@ function Bookmarks:init(group_nr)
 end
 
 function Bookmarks:place_mark(group_nr, bufnr)
-  local bufnr = bufnr or a.nvim_get_current_buf()
+  bufnr = bufnr or a.nvim_get_current_buf()
   local group = self.groups[group_nr]
 
   if not group then
@@ -82,7 +82,7 @@ function Bookmarks:place_mark(group_nr, bufnr)
   local extmark_id = a.nvim_buf_set_extmark(bufnr, group.ns, pos[1]-1, pos[2], opts)
 
   data.extmark_id = extmark_id
-  
+
   if not group.marks[bufnr] then
     group.marks[bufnr] = {}
   end
@@ -90,8 +90,8 @@ function Bookmarks:place_mark(group_nr, bufnr)
 end
 
 function Bookmarks:delete_mark(group_nr, bufnr, line)
-  local bufnr = bufnr or a.nvim_get_current_buf()
-  local line = line or a.nvim_win_get_cursor(0)[1]
+  bufnr = bufnr or a.nvim_get_current_buf()
+  line = line or a.nvim_win_get_cursor(0)[1]
   local group = self.groups[group_nr]
 
   if not group then
@@ -131,7 +131,7 @@ function Bookmarks:delete_all(group_nr)
   end
 
   for bufnr, buf_marks in pairs(group.marks) do
-    for line, mark in pairs(buf_marks) do
+    for _, mark in pairs(buf_marks) do
       if mark.sign_id then
         utils.remove_sign(bufnr, mark.sign_id, "BookmarkSigns")
       end
@@ -157,8 +157,8 @@ function Bookmarks:next(group_nr)
 
   local marks = flatten(group.marks)
 
-  local function comparator(a, b, key)
-    if (a.line > b.line and a.buf == b.buf) or (a.buf > b.buf) then
+  local function comparator(x, y, _)
+    if (x.line > y.line and x.buf == y.buf) or (x.buf > y.buf) then
       return true
     end
 
@@ -193,8 +193,8 @@ function Bookmarks:prev(group_nr)
 
   local marks = flatten(group.marks)
 
-  local function comparator(a, b, key)
-    if (a.line < b.line and a.buf == b.buf) or (a.buf < b.buf) then
+  local function comparator(x, y, _)
+    if (x.line < y.line and x.buf == y.buf) or (x.buf < y.buf) then
       return true
     end
 
@@ -223,7 +223,7 @@ function Bookmarks:refresh()
   -- signs.
 
   utils.remove_buf_signs(bufnr, "BookmarkSigns")
-  for group_nr, group in pairs(self.groups) do
+  for _, group in pairs(self.groups) do
     buf_marks = group.marks[bufnr]
     if buf_marks then
       for _, mark in pairs(vim.tbl_values(buf_marks)) do
@@ -246,7 +246,7 @@ function Bookmarks:to_loclist(group_nr)
     return
   end
 
-  items = {}
+  local items = {}
   for bufnr, buffer_marks in pairs(self.groups[group_nr].marks) do
     for line, mark in pairs(buffer_marks) do
       local text = a.nvim_buf_get_lines(bufnr, line-1, line, true)[1]
@@ -258,7 +258,7 @@ function Bookmarks:to_loclist(group_nr)
 end
 
 function Bookmarks:all_to_loclist()
-  items = {}
+  local items = {}
   for group_nr, group in pairs(self.groups) do
     for bufnr, buffer_marks in pairs(group.marks) do
       for line, mark in pairs(buffer_marks) do
