@@ -64,6 +64,19 @@ function M.refresh()
   M.bookmark_state:refresh()
 end
 
+function M._on_delete()
+  local bufnr = tonumber(vim.fn.expand("<abuf>"))
+
+  if not bufnr then
+    return
+  end
+
+  M.mark_state.buffers[bufnr] = nil
+  for _, group in pairs(M.bookmark_state.groups) do
+    group.marks[bufnr] = nil
+  end
+end
+
 -- set_group[0-9] functions
 for i=0,9 do
   M["set_bookmark" .. i] = function() M.bookmark_state:place_mark(i) end
@@ -134,6 +147,7 @@ local function setup_autocommands()
   vim.cmd [[augroup Marks_autocmds
     autocmd!
     autocmd BufRead,BufNewFile * lua require'marks'.mark_state:refresh()
+    autocmd BufDelete * lua require'marks'._on_delete()
   augroup end]]
 end
 

@@ -242,7 +242,7 @@ function Bookmarks:refresh()
 end
 
 function Bookmarks:to_loclist(group_nr)
-  if not group_nr then
+  if not group_nr and self.groups[group_nr] then
     return
   end
 
