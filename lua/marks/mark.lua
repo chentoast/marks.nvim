@@ -15,8 +15,8 @@ local Mark = {}
 -- lowest_available_mark: the next lowest alphabetical mark that is available.
 
 function Mark:register_mark(mark, line, col, bufnr)
-  local col = col or 1
-  local bufnr = bufnr or a.nvim_get_current_buf()
+  col = col or 1
+  bufnr = bufnr or a.nvim_get_current_buf()
   local buffer = self.buffers[bufnr]
 
   if not buffer then
@@ -79,7 +79,7 @@ function Mark:place_next_mark_cursor()
 end
 
 function Mark:delete_mark(mark, clear)
-  local clear = utils.option_nil(clear, true)
+  clear = utils.option_nil(clear, true)
   local bufnr = a.nvim_get_current_buf()
   local buffer = self.buffers[bufnr]
 
@@ -155,9 +155,9 @@ function Mark:toggle_mark_cursor()
 end
 
 function Mark:delete_buf_marks(clear)
-  local clear = utils.option_nil(clear, true)
+  clear = utils.option_nil(clear, true)
   local bufnr = a.nvim_get_current_buf()
-  self.buffers[bufnr] = { placed_marks = {}, 
+  self.buffers[bufnr] = { placed_marks = {},
                           marks_by_line = {},
                           lowest_available_mark = "a" }
 
@@ -186,8 +186,8 @@ function Mark:next_mark()
     return
   end
 
-  local function comparator(a, b, key)
-    return a.line > b.line
+  local function comparator(x, y, _)
+    return x.line > y.line
   end
 
   local next = utils.search(marks, {line=line}, {line=math.huge}, comparator, self.opt.cyclic)
@@ -216,8 +216,8 @@ function Mark:prev_mark()
     return
   end
 
-  local function comparator(a, b, key)
-    return a.line < b.line
+  local function comparator(x, y, _)
+    return x.line < y.line
   end
   local prev = utils.search(marks, {line=line}, {line=-1}, comparator, self.opt.cyclic)
 
@@ -241,7 +241,6 @@ function Mark:preview_mark()
     return
   end
 
-  local winnr = a.nvim_get_current_win()
   local width = a.nvim_win_get_width(0)
   local height = a.nvim_win_get_height(0)
 
@@ -259,7 +258,7 @@ function Mark:preview_mark()
 end
 
 function Mark:buffer_to_loclist(bufnr)
-  local bufnr = bufnr or a.nvim_get_current_buf()
+  bufnr = bufnr or a.nvim_get_current_buf()
   if not self.buffers[bufnr] then
     return
   end
@@ -308,15 +307,15 @@ function Mark:toggle_signs()
 end
 
 function Mark:refresh(bufnr)
-  local bufnr = bufnr or a.nvim_get_current_buf()
+  bufnr = bufnr or a.nvim_get_current_buf()
   if not self.buffers[bufnr] then
-    self.buffers[bufnr] = { placed_marks = {}, 
+    self.buffers[bufnr] = { placed_marks = {},
                          marks_by_line = {},
                          lowest_available_mark = "a" }
   end
 
   -- first, remove all marks that were deleted
-  for mark, data in pairs(self.buffers[bufnr].placed_marks) do
+  for mark, _ in pairs(self.buffers[bufnr].placed_marks) do
     if a.nvim_buf_get_mark(bufnr, mark)[1] == 0 then
       self:delete_mark(mark, false)
     end
@@ -352,7 +351,7 @@ function Mark:refresh(bufnr)
 
   -- builtin marks
   for _, char in pairs(self.builtin_marks) do
-    local pos = vim.fn.getpos("'" .. char)
+    pos = vim.fn.getpos("'" .. char)
     if pos[2] ~= 0 and pos[1] == 0 then
       self:register_mark(char, pos[2], pos[3], bufnr)
     end

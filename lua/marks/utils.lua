@@ -4,7 +4,7 @@ local builtin_marks = { ["."] = true, ["^"] = true, ["`"] = true, ["'"] = true,
                         ["]"] = true }
 
 function M.add_sign(bufnr, text, line, id, group, priority)
-  local priority = priority or 10
+  priority = priority or 10
   local sign_name = "Marks_" .. text
   if not M.sign_cache[sign_name] then
     M.sign_cache[sign_name] = true
@@ -15,12 +15,12 @@ function M.add_sign(bufnr, text, line, id, group, priority)
 end
 
 function M.remove_sign(bufnr, id, group)
-  local group = group or "MarkSigns"
+  group = group or "MarkSigns"
   vim.fn.sign_unplace(group, { buffer = bufnr, id = id })
 end
 
 function M.remove_buf_signs(bufnr, group)
-  local group = group or "MarkSigns"
+  group = group or "MarkSigns"
   vim.fn.sign_unplace(group, { buffer = bufnr })
 end
 
