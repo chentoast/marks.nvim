@@ -8,9 +8,9 @@ local Bookmarks = {}
 --  - ns: nvim namespace
 --  - sign: the sign to use for this group
 --  - virt_text: the virtual text to place at each mark
---  - marks: a table of marks, indexed by line number.
+--  - marks: a table of marks, indexed by buffer number, then line number.
 -- each mark is represented by a table with the following keys:
---  buf, line, col, sign_id, extmark_id
+--   line, col, sign_id, extmark_id
 --
 local function group_under_cursor(groups, bufnr, pos)
   bufnr = bufnr or a.nvim_get_current_buf()
@@ -67,7 +67,8 @@ function Bookmarks:place_mark(group_nr, bufnr)
 
   local data = { buf = bufnr, line = pos[1], col = pos[2], sign_id = -1}
 
-  if group.sign then
+  local display_signs = utils.option_nil(self.opt.buf_signs[bufnr], self.opt.signs)
+  if display_signs and group.sign then
     local id = group.sign:byte() * 100 + pos[1]
     self:add_sign(bufnr, group.sign, pos[1], id)
     data.sign_id = id
@@ -157,6 +158,10 @@ function Bookmarks:next(group_nr)
 
   local marks = flatten(group.marks)
 
+  if vim.tbl_isempty(marks) then
+    return
+  end
+
   local function comparator(x, y, _)
     if (x.line > y.line and x.buf == y.buf) or (x.buf > y.buf) then
       return true
@@ -193,6 +198,10 @@ function Bookmarks:prev(group_nr)
 
   local marks = flatten(group.marks)
 
+  if vim.tbl_isempty(marks) then
+    return
+  end
+
   local function comparator(x, y, _)
     if (x.line < y.line and x.buf == y.buf) or (x.buf < y.buf) then
       return true
@@ -216,12 +225,13 @@ end
 
 function Bookmarks:refresh()
   local bufnr = a.nvim_get_current_buf()
-  local buf_marks
 
   -- if we delete and undo really quickly, the extmark's position will be
   -- the same, but the sign will no longer be there. so clear and restore all
   -- signs.
 
+  local buf_marks
+  local display_signs
   utils.remove_buf_signs(bufnr, "BookmarkSigns")
   for _, group in pairs(self.groups) do
     buf_marks = group.marks[bufnr]
@@ -235,7 +245,10 @@ function Bookmarks:refresh()
           buf_marks[mark.line] = nil
           buf_marks[line + 1].line = line + 1
         end
-        self:add_sign(bufnr, group.sign, line + 1, mark.sign_id)
+        display_signs = utils.option_nil(self.opt.buf_signs[bufnr], self.opt.signs)
+        if display_signs and group.sign then
+          self:add_sign(bufnr, group.sign, line + 1, mark.sign_id)
+        end
       end
     end
   end
@@ -278,7 +291,7 @@ end
 
 function Bookmarks.new()
   return setmetatable({signs = {"!", "@", "#", "$", "%", "^", "&", "*", "(", [0]=")"},
-  virt_text = {}, groups = {}}, {__index = Bookmarks})
+  virt_text = {}, groups = {}, opt = {}}, {__index = Bookmarks})
 end
 
 return Bookmarks
