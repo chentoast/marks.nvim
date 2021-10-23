@@ -354,7 +354,9 @@ function Mark:refresh(bufnr, force)
   -- builtin marks
   for _, char in pairs(self.builtin_marks) do
     pos = vim.fn.getpos("'" .. char)
-    if force or (pos[2] ~= 0 and pos[1] == 0) then
+    cached_mark = self.buffers[bufnr].placed_marks[mark]
+    if pos[1] == 0 and pos[2] ~= 0 and (force or not cached_mark or
+        pos[2] ~= cached_mark.line) then
       self:register_mark(char, pos[2], pos[3], bufnr)
     end
   end
