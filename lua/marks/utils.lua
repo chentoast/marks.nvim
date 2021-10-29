@@ -73,4 +73,14 @@ function M.option_nil(option, default)
   end
 end
 
+function M.choose_list(list_type)
+  local list_fn
+  if list_type == "loclist" then
+    list_fn = function(items, flags) vim.fn.setloclist(0, items, flags) end
+  elseif list_type == "quickfixlist" then
+    list_fn = vim.fn.setqflist
+  end
+  return list_fn
+end
+
 return M

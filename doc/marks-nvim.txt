@@ -316,6 +316,18 @@ Fill the location list with all bookmarks of group "group_number".
 
 Fill the location list with all bookmarks, across all groups.
 
+There are also corresponding commands for those who prefer the quickfix list:
+
+*:MarksQFListBuf*
+
+*:MarksQFListGlobal*
+
+*:MarksQFListAll*
+
+*:BookmarksQFList* group_number
+
+*:BookmarksQFListAll*
+
 ==============================================================================
 5. Contributing                                             *marks-contrib*
 

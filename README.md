@@ -170,7 +170,7 @@ marks.nvim defines the following highlight groups:
 
 marks.nvim also defines the following commands:
 
-`:MarksToggleSigns [ buffer]` Toggle signs globally. Also accepts an optional
+`:MarksToggleSigns[ buffer]` Toggle signs globally. Also accepts an optional
   buffer number to toggle signs for that buffer only.
 
 `:MarksListBuf` Fill the location list with all marks in the current buffer.
@@ -183,6 +183,17 @@ marks.nvim also defines the following commands:
 
 `:BookmarksListAll` Fill the location list with all bookmarks, across all groups.
 
+There are also corresponding commands for those who prefer the quickfix list:
+
+`:MarksQFListBuf`
+
+`:MarksQFListGlobal`
+
+`:MarksQFListAll`
+
+`:BookmarksQFList group_number`
+
+`:BookmarksQFListAll`
 
 ## See Also
 

@@ -258,7 +258,11 @@ function Mark:preview_mark()
   vim.cmd("normal! zz")
 end
 
-function Mark:buffer_to_loclist(bufnr)
+function Mark:buffer_to_list(list_type, bufnr)
+  list_type = list_type or "loclist"
+
+  local list_fn = utils.choose_list(list_type)
+
   bufnr = bufnr or a.nvim_get_current_buf()
   if not self.buffers[bufnr] then
     return
@@ -271,10 +275,14 @@ function Mark:buffer_to_loclist(bufnr)
         text = "mark " .. mark .. ": " .. text})
   end
 
-  vim.fn.setloclist(0, items, "r")
+  list_fn(items, "r")
 end
 
-function Mark:all_to_loclist()
+function Mark:all_to_list(list_type)
+  list_type = list_type or "loclist"
+
+  local list_fn = utils.choose_list(list_type)
+
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
     for mark, data in pairs(buffer_state.placed_marks) do
@@ -284,10 +292,14 @@ function Mark:all_to_loclist()
     end
   end
 
-  vim.fn.setloclist(0, items, "r")
+  list_fn(items, "r")
 end
 
-function Mark:global_to_loclist()
+function Mark:global_to_list(list_type)
+  list_type = list_type or "loclist"
+
+  local list_fn = utils.choose_list(list_type)
+
   local items = {}
   for bufnr, buffer_state in pairs(self.buffers) do
     for mark, data in pairs(buffer_state.placed_marks) do
@@ -299,7 +311,7 @@ function Mark:global_to_loclist()
     end
   end
 
-  vim.fn.setloclist(0, items, "r")
+  list_fn(items, "r")
 end
 
 function Mark:toggle_signs()

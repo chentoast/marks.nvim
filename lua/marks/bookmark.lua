@@ -254,10 +254,13 @@ function Bookmarks:refresh()
   end
 end
 
-function Bookmarks:to_loclist(group_nr)
+function Bookmarks:to_list(list_type, group_nr)
   if not group_nr and self.groups[group_nr] then
     return
   end
+
+  list_type = list_type or "loclist"
+  local list_fn = utils.choose_list(list_type)
 
   local items = {}
   for bufnr, buffer_marks in pairs(self.groups[group_nr].marks) do
@@ -267,10 +270,13 @@ function Bookmarks:to_loclist(group_nr)
     end
   end
 
-  vim.fn.setloclist(0, items, "r")
+  list_fn(items, "r")
 end
 
-function Bookmarks:all_to_loclist()
+function Bookmarks:all_to_list(list_type)
+  list_type = list_type or "loclist"
+  local list_fn = utils.choose_list(list_type)
+
   local items = {}
   for group_nr, group in pairs(self.groups) do
     for bufnr, buffer_marks in pairs(group.marks) do
@@ -282,7 +288,7 @@ function Bookmarks:all_to_loclist()
     end
   end
 
-  vim.fn.setloclist(0, items, "r")
+  list_fn(items, "r")
 end
 
 function Bookmarks:add_sign(bufnr, text, line, id)
