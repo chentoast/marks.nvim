@@ -106,11 +106,6 @@ function Mark:delete_mark(mark, clear)
 
   buffer.placed_marks[mark] = nil
 
-  -- We don't actually delete builtin marks, we just hide them
-  if utils.is_special(mark) then
-    return
-  end
-
   if clear then
     vim.cmd("delmark " .. mark)
   end
@@ -322,6 +317,7 @@ end
 function Mark:refresh(bufnr, force)
   force = force or false
   bufnr = bufnr or a.nvim_get_current_buf()
+
   if not self.buffers[bufnr] then
     self.buffers[bufnr] = { placed_marks = {},
                             marks_by_line = {},
