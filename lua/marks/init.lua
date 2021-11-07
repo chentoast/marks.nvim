@@ -12,17 +12,23 @@ function M.set()
   end
 
   if utils.is_valid_mark(input) then
-    M.mark_state:place_mark_cursor(input)
+    if not M.excluded_fts[vim.bo.ft] then
+      M.mark_state:place_mark_cursor(input)
+    end
     vim.cmd("normal! m" .. input)
   end
 end
 
 function M.set_next()
-  M.mark_state:place_next_mark_cursor()
+  if not M.excluded_fts[vim.bo.ft] then
+    M.mark_state:place_next_mark_cursor()
+  end
 end
 
 function M.toggle()
-  M.mark_state:toggle_mark_cursor()
+  if not M.excluded_fts[vim.bo.ft] then
+    M.mark_state:toggle_mark_cursor()
+  end
 end
 
 function M.delete()
@@ -59,8 +65,13 @@ function M.prev()
   M.mark_state:prev_mark()
 end
 
-function M.refresh()
-  M.mark_state:refresh(nil, true)
+function M.refresh(force_reregister)
+  if M.excluded_fts[vim.bo.ft] then
+    return
+  end
+
+  force_reregister = force_reregister or false
+  M.mark_state:refresh(nil, force_reregister)
   M.bookmark_state:refresh()
 end
 
@@ -168,7 +179,7 @@ end
 local function setup_autocommands()
   vim.cmd [[augroup Marks_autocmds
     autocmd!
-    autocmd BufEnter * lua require'marks'.refresh()
+    autocmd BufEnter * lua require'marks'.refresh(true)
     autocmd BufDelete * lua require'marks'._on_delete()
   augroup end]]
 end
@@ -192,6 +203,14 @@ function M.setup(config)
           M.bookmark_state.virt_text[i]
     end
   end
+
+  local excluded_fts = {}
+  for _, ft in ipairs(config.excluded_filetypes or {}) do
+    excluded_fts[ft] = true
+  end
+
+  M.excluded_fts = excluded_fts
+
   M.bookmark_state.opt.signs = true
   M.bookmark_state.opt.buf_signs = {}
 
@@ -220,14 +239,8 @@ function M.setup(config)
 
   local refresh_interval = utils.option_nil(config.refresh_interval, 150)
 
-  local marks_timer = vim.loop.new_timer()
-  marks_timer:start(0, refresh_interval, vim.schedule_wrap(function()
-    M.mark_state:refresh()
-  end))
-  local bookmarks_timer = vim.loop.new_timer()
-  bookmarks_timer:start(0, refresh_interval, vim.schedule_wrap(function()
-    M.bookmark_state:refresh()
-  end))
+  local timer = vim.loop.new_timer()
+  timer:start(0, refresh_interval, vim.schedule_wrap(M.refresh))
 end
 
 return M
