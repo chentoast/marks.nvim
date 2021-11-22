@@ -115,7 +115,7 @@ function Mark:delete_mark(mark, clear)
   end
 
   -- only adjust lowest_available_mark if it is lowercase
-  if utils.is_upper(mark) then
+  if not utils.is_lower(mark) then
     return
   end
 
