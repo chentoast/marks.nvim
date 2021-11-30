@@ -65,6 +65,10 @@ function M.prev()
   M.mark_state:prev_mark()
 end
 
+function M.annotate()
+  M.bookmark_state:annotate()
+end
+
 function M.refresh(force_reregister)
   if M.excluded_fts[vim.bo.ft] then
     return
