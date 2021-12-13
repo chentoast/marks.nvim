@@ -363,8 +363,12 @@ function Mark:refresh(bufnr, force)
   for _, char in pairs(self.builtin_marks) do
     pos = vim.fn.getpos("'" .. char)
     cached_mark = self.buffers[bufnr].placed_marks[mark]
-    if pos[1] == 0 and pos[2] ~= 0 and (force or not cached_mark or
-        pos[2] ~= cached_mark.line) then
+    -- check:
+    -- mark located in current buffer? (0-9 marks return absolute bufnr instead of 0)
+    -- valid (lnum != 0)
+    if (pos[1] == 0 or pos[1] == bufnr) and pos[2] ~= 0 and
+        (force or not cached_mark or
+         pos[2] ~= cached_mark.line) then
       self:register_mark(char, pos[2], pos[3], bufnr)
     end
   end
