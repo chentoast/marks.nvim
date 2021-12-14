@@ -2,6 +2,9 @@ local M = { sign_cache = {} }
 local builtin_marks = { ["."] = true, ["^"] = true, ["`"] = true, ["'"] = true,
                         ['"'] = true, ["<"] = true, [">"] = true, ["["] = true,
                         ["]"] = true }
+for i = 0,9 do
+  builtin_marks[tostring(i)] = true
+end
 
 function M.add_sign(bufnr, text, line, id, group, priority)
   priority = priority or 10
