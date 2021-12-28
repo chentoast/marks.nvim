@@ -133,7 +133,8 @@ The following keys are available to be passed to the mapping table:
   prev_bookmark[0-9]     Moves to the previous bookmark of of the same group type. Works by
                          first going according to line number, and then according to buffer
                          number.
-
+  annotate               Prompts the user for a virtual line annotation that is then placed
+                         above the bookmark. Requires neovim 0.6+ and is not mapped by default.
 ```
 
 marks.nvim also provides a list of `<Plug>` mappings for you, in case you want to map things via vimscript. The list of provided mappings are:

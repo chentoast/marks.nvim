@@ -3,7 +3,7 @@ local a = vim.api
 
 local Bookmarks = {}
 
--- self is an array of mark groups, with indexes from 1 to 10.
+-- self.groups is an array of mark groups, with indexes from 1 to 10.
 -- each element is a table with the following keys:
 --  - ns: nvim namespace
 --  - sign: the sign to use for this group
@@ -221,6 +221,42 @@ function Bookmarks:prev(group_nr)
     vim.cmd("silent b" .. prev.buf)
   end
   a.nvim_win_set_cursor(0, { prev.line, prev.col })
+end
+
+function Bookmarks:annotate()
+  if vim.fn.has("nvim-0.6") ~= 1 then
+    error("virtual line annotations requires neovim 0.6 or higher")
+  end
+
+  local bufnr = a.nvim_get_current_buf()
+  local pos = a.nvim_win_get_cursor(0)
+
+  local group_nr = group_under_cursor(self.groups, bufnr, pos)
+
+  local bookmark = self.groups[group_nr].marks[bufnr][pos[1]]
+
+  if not bookmark then
+    return
+  end
+
+  local text = vim.fn.input("annotation: ")
+
+  if text ~= "" then
+    a.nvim_buf_set_extmark(bufnr, self.groups[group_nr].ns, bookmark.line-1, bookmark.col, {
+      id = bookmark.extmark_id, virt_lines = {{{text, "MarkVirtTextHL"}}},
+      virt_lines_above=true,
+    })
+  else
+    a.nvim_buf_del_extmark(bufnr, self.groups[group_nr].ns, bookmark.extmark_id)
+
+    local opts = {}
+    if self.groups[group_nr].virt_text then
+      opts.virt_text = {{ self.groups[group_nr].virt_text, "MarkVirtTextHL" }}
+      opts.virt_text_pos = "eol"
+    end
+    bookmark.extmark_id = a.nvim_buf_set_extmark(bufnr, self.groups[group_nr].ns, bookmark.line-1,
+                                                 bookmark.col, opts)
+  end
 end
 
 function Bookmarks:refresh()
