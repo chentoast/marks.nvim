@@ -111,7 +111,7 @@ function M.toggle_signs(bufnr)
         M.bookmark_state.opt.buf_signs[bufnr], M.bookmark_state.opt.signs)
   end
 
-  M.refresh()
+  M.refresh(true)
 end
 
 -- set_group[0-9] functions
