@@ -38,6 +38,6 @@ nnoremap <Plug>(Marks-prev-bookmark) <cmd> lua require'marks'.prev_bookmark()<cr
 for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   exe "nnoremap <Plug>(Marks-set-bookmark"..i..") <cmd> lua require'marks'.set_bookmark"..i.."()<cr>"
   exe "nnoremap <Plug>(Marks-delete-bookmark"..i..") <cmd> lua require'marks'.delete_bookmark"..i.."()<cr>"
-  exe "nnoremap <Plug>(Marks-next-bookmark"..i..") <cmd> lua require'marks'.next("..i..")<cr>"
-  exe "nnoremap <Plug>(Marks-prev-bookmark"..i..") <cmd> lua require'marks'.prev("..i..")<cr>"
+  exe "nnoremap <Plug>(Marks-next-bookmark"..i..") <cmd> lua require'marks'.next_bookmark"..i.."()<cr>"
+  exe "nnoremap <Plug>(Marks-prev-bookmark"..i..") <cmd> lua require'marks'.prev_bookmark"..i.."()<cr>"
 endfor
