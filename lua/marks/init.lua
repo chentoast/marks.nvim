@@ -183,7 +183,7 @@ end
 local function setup_autocommands()
   vim.cmd [[augroup Marks_autocmds
     autocmd!
-    autocmd BufEnter * lua require'marks'.refresh(true)
+    autocmd BufReadPost * lua require'marks'.refresh(true)
     autocmd BufDelete * lua require'marks'._on_delete()
   augroup end]]
 end
