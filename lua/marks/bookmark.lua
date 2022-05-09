@@ -317,9 +317,11 @@ function Bookmarks:all_to_list(list_type)
   for group_nr, group in pairs(self.groups) do
     for bufnr, buffer_marks in pairs(group.marks) do
       for line, mark in pairs(buffer_marks) do
-      local text = a.nvim_buf_get_lines(bufnr, line-1, line, true)[1]
-        table.insert(items, { bufnr=bufnr, lnum=line, col=mark.col + 1,
+        if nvim_buf_is_loaded(bufnr) then
+          local text = a.nvim_buf_get_lines(bufnr, line-1, line, true)[1]
+          table.insert(items, { bufnr=bufnr, lnum=line, col=mark.col + 1,
             text="bookmark group "..group_nr..": "..text })
+        end
       end
     end
   end
