@@ -23,7 +23,7 @@ I recommend you use your favorite vim plugin manager, like vim-plug, or packer.
 
 For example, using vim-plug, you would add the following line:
 
-`Plug 'chentau/marks.nvim'`
+`Plug 'chentoast/marks.nvim'`
 
 If you want to manually install, you can clone this repository, and add the path
 to the cloned repo to your runtimepath: `set rtp+=/path/to/cloned/repo`.
