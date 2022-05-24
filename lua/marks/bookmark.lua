@@ -291,7 +291,7 @@ function Bookmarks:refresh()
 end
 
 function Bookmarks:to_list(list_type, group_nr)
-  if not group_nr and self.groups[group_nr] then
+  if not group_nr or not self.groups[group_nr] then
     return
   end
 
