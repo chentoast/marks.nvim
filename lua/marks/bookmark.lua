@@ -233,6 +233,10 @@ function Bookmarks:annotate()
 
   local group_nr = group_under_cursor(self.groups, bufnr, pos)
 
+  if not group_nr then
+    return
+  end
+
   local bookmark = self.groups[group_nr].marks[bufnr][pos[1]]
 
   if not bookmark then
