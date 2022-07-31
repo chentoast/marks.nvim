@@ -207,6 +207,7 @@ function M.setup(config)
       end
       M.bookmark_state.virt_text[i] = bookmark_config.virt_text or
           M.bookmark_state.virt_text[i]
+      M.bookmark_state.prompt_annotate[i] = bookmark_config.annotate
     end
   end
 

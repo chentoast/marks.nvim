@@ -143,6 +143,8 @@ plugin. The following options are defined:
         turn off signs for this bookmark.
       virt_text: virtual text annotations to place at the eol of a bookmark.
         defaults to nil, meaning no virtual text.
+      annotate: when true, explicitly prompts the user for an annotation that
+        will be displayed above the bookmark. defaults to false.
 
 ==============================================================================
 2. Bookmarks                                                *marks-bookmarks*
