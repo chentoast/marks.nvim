@@ -88,6 +88,10 @@ function Bookmarks:place_mark(group_nr, bufnr)
     group.marks[bufnr] = {}
   end
   group.marks[bufnr][pos[1]] = data
+
+  if self.prompt_annotate[group_nr] then
+    self:annotate(group_nr)
+  end
 end
 
 function Bookmarks:delete_mark(group_nr, bufnr, line)
@@ -223,7 +227,7 @@ function Bookmarks:prev(group_nr)
   a.nvim_win_set_cursor(0, { prev.line, prev.col })
 end
 
-function Bookmarks:annotate()
+function Bookmarks:annotate(group_nr)
   if vim.fn.has("nvim-0.6") ~= 1 then
     error("virtual line annotations requires neovim 0.6 or higher")
   end
@@ -231,7 +235,7 @@ function Bookmarks:annotate()
   local bufnr = a.nvim_get_current_buf()
   local pos = a.nvim_win_get_cursor(0)
 
-  local group_nr = group_under_cursor(self.groups, bufnr, pos)
+  group_nr = group_nr or group_under_cursor(self.groups, bufnr, pos)
 
   local bookmark = self.groups[group_nr].marks[bufnr][pos[1]]
 
@@ -333,7 +337,7 @@ end
 
 function Bookmarks.new()
   return setmetatable({signs = {"!", "@", "#", "$", "%", "^", "&", "*", "(", [0]=")"},
-  virt_text = {}, groups = {}, opt = {}}, {__index = Bookmarks})
+  virt_text = {}, groups = {}, prompt_annotate = {}, opt = {}}, {__index = Bookmarks})
 end
 
 return Bookmarks

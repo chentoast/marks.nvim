@@ -189,6 +189,8 @@ local function setup_autocommands()
 end
 
 function M.setup(config)
+  config = config or {}
+
   M.mark_state = mark.new()
   M.mark_state.builtin_marks = config.builtin_marks or {}
 
@@ -205,6 +207,7 @@ function M.setup(config)
       end
       M.bookmark_state.virt_text[i] = bookmark_config.virt_text or
           M.bookmark_state.virt_text[i]
+      M.bookmark_state.prompt_annotate[i] = bookmark_config.annotate
     end
   end
 
