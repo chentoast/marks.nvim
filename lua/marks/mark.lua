@@ -222,20 +222,29 @@ function Mark:prev_mark()
   end
 end
 
-function Mark:preview_mark()
-  local bufnr = a.nvim_get_current_buf()
-
+function Mark.preview_mark()
+  a.nvim_echo({{"press letter mark to preview, or press <esc> to quit"}}, true, {})
   local mark = vim.fn.getchar()
-  if mark == 13 then -- <cr>
-    mark = self:next_mark(bufnr, a.nvim_win_get_cursor(0)[2])
+  if mark == 27 then -- <esc>
+    return
   else
     mark = string.char(mark)
+  end
+
+  -- clear cmdline
+  vim.defer_fn(function()
+    a.nvim_echo({{""}}, false, {})
+  end, 100)
+
+  if not mark then
+    return
   end
 
   local pos = vim.fn.getpos("'" .. mark)
   if pos[2] == 0 then
     return
   end
+
 
   local width = a.nvim_win_get_width(0)
   local height = a.nvim_win_get_height(0)
