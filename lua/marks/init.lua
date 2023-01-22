@@ -117,6 +117,7 @@ end
 -- set_group[0-9] functions
 for i=0,9 do
   M["set_bookmark" .. i] = function() M.bookmark_state:place_mark(i) end
+  M["toggle_bookmark" .. i] = function() M.bookmark_state:toggle_mark(i) end
   M["delete_bookmark" .. i] = function() M.bookmark_state:delete_all(i) end
   M["next_bookmark" .. i] = function() M.bookmark_state:next(i) end
   M["prev_bookmark" .. i] = function() M.bookmark_state:prev(i) end

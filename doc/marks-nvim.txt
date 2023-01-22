@@ -201,6 +201,7 @@ The following are the available keys of the mapping table (see above as well):
 
   set_bookmark[0-9]      Sets a bookmark from group[0-9].
   delete_bookmark[0-9]   Deletes all bookmarks from group[0-9].
+  toggle_bookmark[0-9]   Toggles a bookmark from group[0-9].
   delete_bookmark        Deletes the bookmark under the cursor.
   next_bookmark          Moves to the next bookmark having the same type as the
                          bookmark under the cursor.
@@ -269,6 +270,7 @@ on the functionality of each mapping):
     <Plug>(Marks-prev-bookmark)
     <Plug>(Marks-set-bookmark[0-9])
     <Plug>(Marks-delete-bookmark[0-9])
+    <Plug>(Marks-toggle-bookmark[0-9])
     <Plug>(Marks-next-bookmark[0-9])
     <Plug>(Marks-prev-bookmark[0-9])
 
