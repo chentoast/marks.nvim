@@ -130,10 +130,10 @@ The following keys are available to be passed to the mapping table:
                          bookmark under the cursor.
   prev_bookmark          Moves to the previous bookmark having the same type as the
                          bookmark under the cursor.
-  next_bookmark[0-9]     Moves to the next bookmark of of the same group type. Works by
+  next_bookmark[0-9]     Moves to the next bookmark of the same group type. Works by
                          first going according to line number, and then according to buffer
                          number.
-  prev_bookmark[0-9]     Moves to the previous bookmark of of the same group type. Works by
+  prev_bookmark[0-9]     Moves to the previous bookmark of the same group type. Works by
                          first going according to line number, and then according to buffer
                          number.
   annotate               Prompts the user for a virtual line annotation that is then placed
