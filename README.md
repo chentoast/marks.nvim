@@ -158,6 +158,7 @@ marks.nvim also provides a list of `<Plug>` mappings for you, in case you want t
 <Plug>(Marks-prev-bookmark)
 <Plug>(Marks-set-bookmark[0-9])
 <Plug>(Marks-delete-bookmark[0-9])
+<Plug>(Marks-toggle-bookmark[0-9])
 <Plug>(Marks-next-bookmark[0-9])
 <Plug>(Marks-prev-bookmark[0-9])
 ```

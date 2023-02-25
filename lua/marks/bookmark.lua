@@ -94,6 +94,24 @@ function Bookmarks:place_mark(group_nr, bufnr)
   end
 end
 
+function Bookmarks:toggle_mark(group_nr, bufnr)
+  bufnr = bufnr or a.nvim_get_current_buf()
+  local group = self.groups[group_nr]
+
+  if not group then
+    self:init(group_nr)
+    group = self.groups[group_nr]
+  end
+
+  local pos = a.nvim_win_get_cursor(0)
+
+  if group.marks[bufnr] and group.marks[bufnr][pos[1]] then
+    self:delete_mark(group_nr)
+  else
+    self:place_mark(group_nr)
+  end
+end
+
 function Bookmarks:delete_mark(group_nr, bufnr, line)
   bufnr = bufnr or a.nvim_get_current_buf()
   line = line or a.nvim_win_get_cursor(0)[1]
