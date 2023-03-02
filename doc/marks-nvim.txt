@@ -302,8 +302,12 @@ see |sign_define()|.
 *MarkSignNumHL*
   (defaults to |LineNr|)
 
-  The highlight group for the number line in a signcolumn: see
-  |sign_define()|.
+  The highlight group for the number line in a signcolumn.
+
+*MarkSignLineHL*
+  (defaults to |NONE|)
+
+  The highlight group for the whole line the sign is placed in.
 
 *MarkVirtTextHL*
   (defaults to |Comment|)
