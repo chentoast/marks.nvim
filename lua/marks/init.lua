@@ -167,7 +167,7 @@ end
 
 local function apply_mappings()
   for cmd, key in pairs(M.mappings) do
-    vim.cmd("nnoremap <silent> "..key.." <cmd>lua require'marks'."..cmd.."()<cr>")
+    vim.api.nvim_set_keymap("n", key, "", { callback = M[cmd], desc = "marks: "..cmd:gsub("_", " ") })
   end
 end
 
