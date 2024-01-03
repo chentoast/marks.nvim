@@ -132,6 +132,14 @@ plugin. The following options are defined:
     display any signs. Setting and moving to marks with ` or ' will still work, but
     movement commands like "m]" or "m[" will not.
 
+  excluded_buftypes: table                         *marks-excluded_buftypes*
+    (default {})
+
+    Which buftypes to ignore. If a buffer with this buftype is opened, then
+    marks.nvim will not track any marks set in this buffer, and will not
+    display any signs. Setting and moving to marks with ` or ' will still work, but
+    movement commands like "m]" or "m[" will not.
+
   bookmark_[0-9]: table                              *marks-bookmark_config*
     (default {})
 
