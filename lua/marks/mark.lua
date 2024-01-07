@@ -35,8 +35,10 @@ function Mark:register_mark(mark, line, col, bufnr)
   end
   buffer.placed_marks[mark] = { line = line, col = col, id = -1 }
 
+  local winid = a.nvim_get_current_win()
+  local is_floating = a.nvim_win_get_config(winid).relative ~= ""
   local display_signs = utils.option_nil(self.opt.buf_signs[bufnr], self.opt.signs)
-  if display_signs then
+  if display_signs and not is_floating then
     local id = mark:byte() * 100
     buffer.placed_marks[mark].id = id
     self:add_sign(bufnr, mark, line, id)
