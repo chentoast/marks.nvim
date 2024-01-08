@@ -150,6 +150,24 @@ function Mark:toggle_mark_cursor()
   end
 end
 
+function Mark:toggle_mark(mark)
+  local bufnr = a.nvim_get_current_buf()
+  local pos = a.nvim_win_get_cursor(0)
+
+  local is_marked = false
+  local buffer = self.buffers[bufnr]
+  if buffer and buffer.placed_marks[mark] and buffer.placed_marks[mark].line == pos[1] then
+    is_marked = true
+  end
+
+  if is_marked then
+    self:delete_mark(mark)
+  else
+    self:register_mark(mark, pos[1], pos[2], bufnr)
+    vim.cmd("normal! m" .. mark)
+  end
+end
+
 function Mark:delete_buf_marks(clear)
   clear = utils.option_nil(clear, true)
   local bufnr = a.nvim_get_current_buf()
