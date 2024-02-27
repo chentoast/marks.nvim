@@ -67,7 +67,7 @@ local list_all = function(opts)
 
   pickers
     .new(opts or {}, {
-      prompt_title = "Buffer Marks",
+      prompt_title = "All Marks",
       finder = finders.new_table({
         results = results,
         entry_maker = function(entry)
