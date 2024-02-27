@@ -71,6 +71,28 @@ require'marks'.setup {
 
 See `:help marks-setup` for all of the keys that can be passed to the setup function.
 
+## Telescope
+
+There is a [telescope](https://github.com/nvim-telescope/telescope.nvim) extension allowing to list marks through telescope.
+
+To activate it you need to load the extension:
+```lua
+local status_ok, telescope = pcall(require, "telescope")
+if not status_ok then
+	return
+end
+
+telescope.load_extension("marks_nvim")
+```
+
+You can then use the extension methods to list marks instead of using the native loclist system.
+You simply need to call these methods in your mappings.
+
+```lua
+require('telescope').extensions.marks_nvim.marks_list_buf() --[[ List buffer marks ]]
+require('telescope').extensions.marks_nvim.marks_list_all() --[[ List all marks ]]
+```
+
 ## Mappings
 
 The following default mappings are included:
