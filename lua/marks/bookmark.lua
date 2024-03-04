@@ -336,7 +336,7 @@ function Bookmarks:get_group_list(group_nr)
 				col = mark.col + 1,
 				group = group_nr,
 				line = vim.trim(text),
-				filename = filename,
+				path = filename,
 			})
 		end
 	end
@@ -358,7 +358,7 @@ function Bookmarks:get_all_list()
 					col = mark.col + 1,
 					group = group_nr,
 					line = vim.trim(text),
-					filename = filename,
+					path = filename,
 				})
 			end
 		end

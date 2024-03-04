@@ -271,14 +271,14 @@ function Mark:get_buf_list(bufnr)
   local items = {}
   for mark, data in pairs(self.buffers[bufnr].placed_marks) do
     local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
-    local bufname = vim.api.nvim_buf_get_name(bufnr)
+    local path = vim.api.nvim_buf_get_name(bufnr)
     table.insert(items, {
       bufnr = bufnr,
       lnum = data.line,
       col = data.col + 1,
       mark = mark,
       line = vim.trim(text),
-      filename = bufname
+      path = path
     })
   end
   return items
@@ -289,14 +289,14 @@ function Mark:get_all_list()
   for bufnr, buffer_state in pairs(self.buffers) do
     for mark, data in pairs(buffer_state.placed_marks) do
       local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
-      local bufname = vim.api.nvim_buf_get_name(bufnr)
+      local path = vim.api.nvim_buf_get_name(bufnr)
       table.insert(items, {
         bufnr = bufnr,
         lnum = data.line,
         col = data.col + 1,
         mark = mark,
         line = vim.trim(text),
-        filename = bufname
+        path = path
       })
     end
   end
