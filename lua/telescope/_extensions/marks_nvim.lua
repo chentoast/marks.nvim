@@ -2,6 +2,7 @@ local telescope = require("telescope")
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local entry_display = require("telescope.pickers.entry_display")
+local telescope_utils = require("telescope.utils")
 local conf = require("telescope.config").values
 local marks = require("marks")
 
@@ -21,13 +22,13 @@ local list_marks_buf = function(opts)
 	local make_display = function(entry)
 		return displayer({
 			{ entry.mark, "TelescopeResultsIdentifier" },
-			{ "l" .. entry.lnum },
+			{ entry.lnum },
 			{ entry.line, "String" },
 		})
 	end
 
 	pickers
-		.new(opts or {}, {
+		.new(opts, {
 			prompt_title = "Buffer Marks",
 			finder = finders.new_table({
 				results = results,
@@ -46,14 +47,15 @@ end
 
 local list_marks_all = function(opts)
 	opts = opts or {}
+	local conf_path = { path_display = opts.path_display or conf.path_display or {} }
 	local results = marks.mark_state:get_all_list() or {}
 
 	local displayer = entry_display.create({
 		separator = " ",
 		items = {
 			{ width = 1 },
-			{ width = 7 },
-			{ width = 15 },
+			{ width = 5 },
+			{ width = 20 },
 			{},
 		},
 	})
@@ -61,14 +63,14 @@ local list_marks_all = function(opts)
 	local make_display = function(entry)
 		return displayer({
 			{ entry.mark, "TelescopeResultsIdentifier" },
-			{ "l" .. entry.lnum },
+			{ entry.lnum },
 			{ entry.line, "String" },
-			{ vim.fs.normalize(entry.filename) },
+			{ telescope_utils.transform_path(conf_path, entry.path) },
 		})
 	end
 
 	pickers
-		.new(opts or {}, {
+		.new(opts, {
 			prompt_title = "All Marks",
 			finder = finders.new_table({
 				results = results,
@@ -87,14 +89,15 @@ end
 
 local list_bookmarks_group = function(group, opts)
 	opts = opts or {}
+	local conf_path = { path_display = opts.path_display or conf.path_display or {} }
 	local results = marks.bookmark_state:get_group_list(group) or {}
 
 	local displayer = entry_display.create({
 		separator = " ",
 		items = {
 			{ width = 1 },
-			{ width = 7 },
-			{ width = 15 },
+			{ width = 5 },
+			{ width = 20 },
 			{},
 		},
 	})
@@ -102,14 +105,14 @@ local list_bookmarks_group = function(group, opts)
 	local make_display = function(entry)
 		return displayer({
 			{ entry.group, "TelescopeResultsIdentifier" },
-			{ "l" .. entry.lnum },
+			{ entry.lnum },
 			{ entry.line, "String" },
-			{ vim.fs.normalize(entry.filename) },
+			{ telescope_utils.transform_path(conf_path, entry.path) },
 		})
 	end
 
 	pickers
-		.new(opts or {}, {
+		.new(opts, {
 			prompt_title = "Bookmark " .. group,
 			finder = finders.new_table({
 				results = results,
@@ -128,14 +131,15 @@ end
 
 local list_bookmarks_all = function(opts)
 	opts = opts or {}
+	local conf_path = { path_display = opts.path_display or conf.path_display or {} }
 	local results = marks.bookmark_state:get_all_list() or {}
 
 	local displayer = entry_display.create({
 		separator = " ",
 		items = {
 			{ width = 1 },
-			{ width = 7 },
-			{ width = 15 },
+			{ width = 5 },
+			{ width = 20 },
 			{},
 		},
 	})
@@ -143,14 +147,14 @@ local list_bookmarks_all = function(opts)
 	local make_display = function(entry)
 		return displayer({
 			{ entry.group, "TelescopeResultsIdentifier" },
-			{ "l" .. entry.lnum },
+			{ entry.lnum },
 			{ entry.line, "String" },
-			{ vim.fs.normalize(entry.filename) },
+			{ telescope_utils.transform_path(conf_path, entry.path) },
 		})
 	end
 
 	pickers
-		.new(opts or {}, {
+		.new(opts, {
 			prompt_title = "All Bookmarks",
 			finder = finders.new_table({
 				results = results,
