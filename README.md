@@ -89,8 +89,16 @@ You can then use the extension methods to list marks instead of using the native
 You simply need to call these methods in your mappings.
 
 ```lua
-require('telescope').extensions.marks_nvim.marks_list_buf() --[[ List buffer marks ]]
-require('telescope').extensions.marks_nvim.marks_list_all() --[[ List all marks ]]
+require('telescope').extensions.marks_nvim.marks_list_buf(opts) --[[ List buffer marks ]]
+require('telescope').extensions.marks_nvim.marks_list_all(opts) --[[ List all marks ]]
+require('telescope').extensions.marks_nvim.bookmarks_list_group(1, opts) --[[ List a bookmark group marks (takes the group number as  argument) ]]
+require('telescope').extensions.marks_nvim.bookmarks_list_all(opts) --[[ List all bookmarks marks ]]
+```
+
+These methods will use your `path_display` telescope configuraiton to display paths.
+You can also pass a specific property for one method in the `opts` table. Eg.
+```lua
+require('telescope').extensions.marks_nvim.marks_list_all({ path_display = 'shorten' })
 ```
 
 ## Mappings
