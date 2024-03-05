@@ -71,6 +71,36 @@ require'marks'.setup {
 
 See `:help marks-setup` for all of the keys that can be passed to the setup function.
 
+## Telescope
+
+There is a [telescope](https://github.com/nvim-telescope/telescope.nvim) extension allowing to list marks through telescope.
+
+To activate it you need to load the extension:
+```lua
+local status_ok, telescope = pcall(require, "telescope")
+if not status_ok then
+	return
+end
+
+telescope.load_extension("marks_nvim")
+```
+
+You can then use the extension methods to list marks instead of using the native loclist system.
+You simply need to call these methods in your mappings.
+
+```lua
+require('telescope').extensions.marks_nvim.marks_list_buf(opts) --[[ List buffer marks ]]
+require('telescope').extensions.marks_nvim.marks_list_all(opts) --[[ List all marks ]]
+require('telescope').extensions.marks_nvim.bookmarks_list_group(1, opts) --[[ List a bookmark group marks (takes the group number as  argument) ]]
+require('telescope').extensions.marks_nvim.bookmarks_list_all(opts) --[[ List all bookmarks marks ]]
+```
+
+These methods will use your `path_display` telescope configuraiton to display paths.
+You can also pass a specific property for one method in the `opts` table. Eg.
+```lua
+require('telescope').extensions.marks_nvim.marks_list_all({ path_display = 'shorten' })
+```
+
 ## Mappings
 
 The following default mappings are included:
