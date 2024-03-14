@@ -4,7 +4,7 @@ endif
 let g:loaded_marks = 1
 
 hi default link MarkSignHL Identifier
-" hi default link MarkSignLineHL Normal
+hi default link MarkSignLineHL NONE
 hi default link MarkSignNumHL CursorLineNr
 hi default link MarkVirtTextHL Comment
 
