@@ -61,11 +61,12 @@ local list_marks_all = function(opts)
   })
 
   local make_display = function(entry)
+    local file_path = telescope_utils.transform_path(conf_path, entry.path)
     return displayer({
       { entry.mark, "TelescopeResultsIdentifier" },
       { entry.lnum },
       { entry.line, "String" },
-      { telescope_utils.transform_path(conf_path, entry.path) },
+      { file_path, "Comment" },
     })
   end
 

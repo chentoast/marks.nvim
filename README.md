@@ -91,7 +91,7 @@ You simply need to call these methods in your mappings.
 ```lua
 require('telescope').extensions.marks_nvim.marks_list_buf(opts) --[[ List buffer marks ]]
 require('telescope').extensions.marks_nvim.marks_list_all(opts) --[[ List all marks ]]
-require('telescope').extensions.marks_nvim.bookmarks_list_group(1, opts) --[[ List a bookmark group marks (takes the group number as  argument) ]]
+require('telescope').extensions.marks_nvim.bookmarks_list_group(1, opts) --[[ List a bookmark group marks (takes the group number as argument) ]]
 require('telescope').extensions.marks_nvim.bookmarks_list_all(opts) --[[ List all bookmarks marks ]]
 ```
 
