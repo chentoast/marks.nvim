@@ -21,7 +21,7 @@ Screenshot:
 
 I recommend you use your favorite vim plugin manager, like vim-plug, or packer.
 
-For example, using lazy.nvim, you would add the following line:
+For example, using lazy.nvim, you would add the following line to the `spec` field of setup:
 
 ```Lua
 {
