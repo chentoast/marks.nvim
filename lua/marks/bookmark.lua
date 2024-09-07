@@ -1,4 +1,4 @@
-local utils = require'marks.utils'
+local utils = require("marks.utils")
 local a = vim.api
 
 local Bookmarks = {}
@@ -65,7 +65,7 @@ function Bookmarks:place_mark(group_nr, bufnr)
     return
   end
 
-  local data = { buf = bufnr, line = pos[1], col = pos[2], sign_id = -1}
+  local data = { buf = bufnr, line = pos[1], col = pos[2], sign_id = -1 }
 
   local display_signs = utils.option_nil(self.opt.buf_signs[bufnr], self.opt.signs)
   if display_signs and group.sign then
@@ -76,11 +76,11 @@ function Bookmarks:place_mark(group_nr, bufnr)
 
   local opts = {}
   if group.virt_text then
-    opts.virt_text = {{ group.virt_text, "MarkVirtTextHL" }}
+    opts.virt_text = { { group.virt_text, "MarkVirtTextHL" } }
     opts.virt_text_pos = "eol"
   end
 
-  local extmark_id = a.nvim_buf_set_extmark(bufnr, group.ns, pos[1]-1, pos[2], opts)
+  local extmark_id = a.nvim_buf_set_extmark(bufnr, group.ns, pos[1] - 1, pos[2], opts)
 
   data.extmark_id = extmark_id
 
@@ -192,8 +192,13 @@ function Bookmarks:next(group_nr)
     return false
   end
 
-  local next = utils.search(marks, {buf = bufnr, line=pos[1]},
-      {buf=math.huge, line=math.huge}, comparator, false)
+  local next = utils.search(
+    marks,
+    { buf = bufnr, line = pos[1] },
+    { buf = math.huge, line = math.huge },
+    comparator,
+    false
+  )
 
   if not next then
     next = marks[1]
@@ -232,8 +237,7 @@ function Bookmarks:prev(group_nr)
     return false
   end
 
-  local prev = utils.search(marks, {buf = bufnr, line=pos[1]},
-      {buf=-1, line=-1}, comparator, false)
+  local prev = utils.search(marks, { buf = bufnr, line = pos[1] }, { buf = -1, line = -1 }, comparator, false)
 
   if not prev then
     prev = marks[#marks]
@@ -268,20 +272,20 @@ function Bookmarks:annotate(group_nr)
   local text = vim.fn.input("annotation: ")
 
   if text ~= "" then
-    a.nvim_buf_set_extmark(bufnr, self.groups[group_nr].ns, bookmark.line-1, bookmark.col, {
-      id = bookmark.extmark_id, virt_lines = {{{text, "MarkVirtTextHL"}}},
-      virt_lines_above=true,
+    a.nvim_buf_set_extmark(bufnr, self.groups[group_nr].ns, bookmark.line - 1, bookmark.col, {
+      id = bookmark.extmark_id,
+      virt_lines = { { { text, "MarkVirtTextHL" } } },
+      virt_lines_above = true,
     })
   else
     a.nvim_buf_del_extmark(bufnr, self.groups[group_nr].ns, bookmark.extmark_id)
 
     local opts = {}
     if self.groups[group_nr].virt_text then
-      opts.virt_text = {{ self.groups[group_nr].virt_text, "MarkVirtTextHL" }}
+      opts.virt_text = { { self.groups[group_nr].virt_text, "MarkVirtTextHL" } }
       opts.virt_text_pos = "eol"
     end
-    bookmark.extmark_id = a.nvim_buf_set_extmark(bufnr, self.groups[group_nr].ns, bookmark.line-1,
-                                                 bookmark.col, opts)
+    bookmark.extmark_id = a.nvim_buf_set_extmark(bufnr, self.groups[group_nr].ns, bookmark.line - 1, bookmark.col, opts)
   end
 end
 
@@ -299,8 +303,7 @@ function Bookmarks:refresh()
     buf_marks = group.marks[bufnr]
     if buf_marks then
       for _, mark in pairs(vim.tbl_values(buf_marks)) do
-        local line = a.nvim_buf_get_extmark_by_id(bufnr, group.ns,
-            mark.extmark_id, {})[1]
+        local line = a.nvim_buf_get_extmark_by_id(bufnr, group.ns, mark.extmark_id, {})[1]
 
         if line + 1 ~= mark.line then
           buf_marks[line + 1] = mark
@@ -316,6 +319,53 @@ function Bookmarks:refresh()
   end
 end
 
+function Bookmarks:get_group_list(group_nr)
+  local items = {}
+  if not group_nr or not self.groups[group_nr] then
+    return items
+  end
+
+  for bufnr, buffer_marks in pairs(self.groups[group_nr].marks) do
+    for line, mark in pairs(buffer_marks) do
+      local text = a.nvim_buf_get_lines(bufnr, line - 1, line, true)[1]
+      local filename = vim.api.nvim_buf_get_name(bufnr)
+      table.insert(items, {
+        bufnr = bufnr,
+        lnum = line,
+        col = mark.col + 1,
+        group = group_nr,
+        line = vim.trim(text),
+        path = filename,
+      })
+    end
+  end
+
+  return items
+end
+
+function Bookmarks:get_all_list()
+  local items = {}
+  for group_nr, group in pairs(self.groups) do
+    for bufnr, buffer_marks in pairs(group.marks) do
+      for line, mark in pairs(buffer_marks) do
+        local text = a.nvim_buf_get_lines(bufnr, line - 1, line, true)[1]
+        local filename = vim.api.nvim_buf_get_name(bufnr)
+
+        table.insert(items, {
+          bufnr = bufnr,
+          lnum = line,
+          col = mark.col + 1,
+          group = group_nr,
+          line = vim.trim(text),
+          path = filename,
+        })
+      end
+    end
+  end
+
+  return items
+end
+
 function Bookmarks:to_list(list_type, group_nr)
   if not group_nr or not self.groups[group_nr] then
     return
@@ -327,8 +377,8 @@ function Bookmarks:to_list(list_type, group_nr)
   local items = {}
   for bufnr, buffer_marks in pairs(self.groups[group_nr].marks) do
     for line, mark in pairs(buffer_marks) do
-      local text = a.nvim_buf_get_lines(bufnr, line-1, line, true)[1]
-      table.insert(items, { bufnr=bufnr, lnum=line, col=mark.col + 1, text=text })
+      local text = a.nvim_buf_get_lines(bufnr, line - 1, line, true)[1]
+      table.insert(items, { bufnr = bufnr, lnum = line, col = mark.col + 1, text = text })
     end
   end
 
@@ -343,9 +393,13 @@ function Bookmarks:all_to_list(list_type)
   for group_nr, group in pairs(self.groups) do
     for bufnr, buffer_marks in pairs(group.marks) do
       for line, mark in pairs(buffer_marks) do
-      local text = a.nvim_buf_get_lines(bufnr, line-1, line, true)[1]
-        table.insert(items, { bufnr=bufnr, lnum=line, col=mark.col + 1,
-            text="bookmark group "..group_nr..": "..text })
+        local text = a.nvim_buf_get_lines(bufnr, line - 1, line, true)[1]
+        table.insert(items, {
+          bufnr = bufnr,
+          lnum = line,
+          col = mark.col + 1,
+          text = "bookmark group " .. group_nr .. ": " .. text,
+        })
       end
     end
   end
@@ -358,8 +412,13 @@ function Bookmarks:add_sign(bufnr, text, line, id)
 end
 
 function Bookmarks.new()
-  return setmetatable({signs = {"!", "@", "#", "$", "%", "^", "&", "*", "(", [0]=")"},
-  virt_text = {}, groups = {}, prompt_annotate = {}, opt = {}}, {__index = Bookmarks})
+  return setmetatable({
+    signs = { "!", "@", "#", "$", "%", "^", "&", "*", "(", [0] = ")" },
+    virt_text = {},
+    groups = {},
+    prompt_annotate = {},
+    opt = {},
+  }, { __index = Bookmarks })
 end
 
 return Bookmarks
