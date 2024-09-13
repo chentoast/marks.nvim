@@ -184,6 +184,9 @@ marks.nvim defines the following highlight groups:
 
 `MarkSignNumHL` The highlight group for the number line in a signcolumn.
 
+`MarkSignLineHL` The highlight group for the whole line the sign is placed in.
+  (The default is "NONE", so it will not be highlighted unless changed.)
+
 `MarkVirtTextHL` The highlight group for bookmark virtual text annotations.
 
 marks.nvim also defines the following commands:
