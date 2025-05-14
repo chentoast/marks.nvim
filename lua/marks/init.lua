@@ -253,6 +253,12 @@ function M.setup(config)
     M.bookmark_state.priority = config.sign_priority
   end
 
+  if config.float ~= nil then
+	M.float = config.float
+  else
+	M.float = true
+  end
+
   local refresh_interval = utils.option_nil(config.refresh_interval, 150)
 
   local timer = vim.loop.new_timer()
