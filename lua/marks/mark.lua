@@ -262,6 +262,47 @@ function Mark.preview_mark()
   vim.cmd("normal! zz")
 end
 
+function Mark:get_buf_list(bufnr)
+  bufnr = bufnr or a.nvim_get_current_buf()
+  if not self.buffers[bufnr] then
+    return
+  end
+
+  local items = {}
+  for mark, data in pairs(self.buffers[bufnr].placed_marks) do
+    local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
+    local path = vim.api.nvim_buf_get_name(bufnr)
+    table.insert(items, {
+      bufnr = bufnr,
+      lnum = data.line,
+      col = data.col + 1,
+      mark = mark,
+      line = vim.trim(text),
+      path = path
+    })
+  end
+  return items
+end
+
+function Mark:get_all_list()
+  local items = {}
+  for bufnr, buffer_state in pairs(self.buffers) do
+    for mark, data in pairs(buffer_state.placed_marks) do
+      local text = a.nvim_buf_get_lines(bufnr, data.line-1, data.line, true)[1]
+      local path = vim.api.nvim_buf_get_name(bufnr)
+      table.insert(items, {
+        bufnr = bufnr,
+        lnum = data.line,
+        col = data.col + 1,
+        mark = mark,
+        line = vim.trim(text),
+        path = path
+      })
+    end
+  end
+  return items
+end
+
 function Mark:buffer_to_list(list_type, bufnr)
   list_type = list_type or "loclist"
 
