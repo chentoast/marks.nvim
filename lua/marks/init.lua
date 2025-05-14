@@ -31,6 +31,21 @@ function M.toggle()
   end
 end
 
+function M.toggle_mark()
+  local err, input = pcall(function()
+    return string.char(vim.fn.getchar())
+  end)
+  if not err then
+    return
+  end
+
+  if utils.is_valid_mark(input) then
+    if not M.excluded_fts[vim.bo.ft] then
+      M.mark_state:toggle_mark(input)
+    end
+  end
+end
+
 function M.delete()
   local err, input = pcall(function()
     return string.char(vim.fn.getchar())
@@ -139,6 +154,7 @@ M.mappings = {
   set = "m",
   set_next = "m,",
   toggle = "m;",
+  toggle_mark = "M",
   next = "m]",
   prev = "m[",
   preview = "m:",

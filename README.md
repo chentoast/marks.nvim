@@ -88,6 +88,7 @@ The following default mappings are included:
     mx              Set mark x
     m,              Set the next available alphabetical (lowercase) mark
     m;              Toggle the next available mark at the current line
+    Mx              Toggle a inputed mark at the current line
     dmx             Delete mark x
     dm-             Delete all marks on the current line
     dm<space>       Delete all marks in the current buffer
@@ -126,6 +127,7 @@ The following keys are available to be passed to the mapping table:
 ```
   set_next               Set next available lowercase mark at cursor.
   toggle                 Toggle next available mark at cursor.
+  toggle_mark            Toggle a inputed mark at the current line.
   delete_line            Deletes all marks on current line.
   delete_buf             Deletes all marks in current buffer.
   next                   Goes to next mark in buffer.
@@ -157,6 +159,7 @@ marks.nvim also provides a list of `<Plug>` mappings for you, in case you want t
 <Plug>(Marks-set)
 <Plug>(Marks-setnext)
 <Plug>(Marks-toggle)
+<Plug>(Marks-togglemark)
 <Plug>(Marks-delete)
 <Plug>(Marks-deleteline)
 <Plug>(Marks-deletebuf)

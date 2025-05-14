@@ -177,6 +177,7 @@ The following mappings are defined by default:
     mx              Set mark x
     m,              Set the next available alphabetical (lowercase) mark
     m;              Toggle the next available mark at the current line
+    Mx              Toggle a inputed mark at the current line
     dmx             Delete mark x
     dm-             Delete all marks on the current line
     dm<space>       Delete all marks in the current buffer
@@ -200,6 +201,7 @@ The following are the available keys of the mapping table (see above as well):
   set_next               Set the next available alphabetical mark
   set                    Set a named mark (will wait for input).
   toggle                 Toggle a mark at the cursor.
+  toggle_mark            Toggle a inputed mark at the current line.
   next                   Move to the next mark
   prev                   Move to the previous mark.
   delete                 Delete a mark (will wait for input).
@@ -267,6 +269,7 @@ on the functionality of each mapping):
     <Plug>(Marks-set)
     <Plug>(Marks-setnext)
     <Plug>(Marks-toggle)
+    <Plug>(Marks-togglemark)
     <Plug>(Marks-delete)
     <Plug>(Marks-deleteline)
     <Plug>(Marks-deletebuf)
