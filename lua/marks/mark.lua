@@ -14,6 +14,18 @@ local Mark = {}
 --
 -- lowest_available_mark: the next lowest alphabetical mark that is available.
 
+local function get_id(str)
+  local id = 0
+  local power = 0
+  for c in vim.gsplit(str, "", { plain = true }) do
+    local byte = c:byte()
+    local digit = math.floor(math.log(byte, 10)) + 1
+    id = id + 10 ^ power * byte
+    power = power + digit
+  end
+  return id
+end
+
 function Mark:register_mark(mark, line, col, bufnr)
   col = col or 1
   bufnr = bufnr or a.nvim_get_current_buf()
@@ -37,7 +49,7 @@ function Mark:register_mark(mark, line, col, bufnr)
 
   local display_signs = utils.option_nil(self.opt.buf_signs[bufnr], self.opt.signs)
   if display_signs then
-    local id = mark:byte() * 100
+    local id = get_id(mark) * 100
     buffer.placed_marks[mark].id = id
     self:add_sign(bufnr, mark, line, id)
   end
@@ -318,6 +330,24 @@ function Mark:global_to_list(list_type)
   list_fn(items, "r")
 end
 
+local builtin = {
+  wH = function()
+    return vim.fn.getpos("w0")
+  end,
+  wM = function()
+    local H = vim.fn.getpos("w0")
+    local L = vim.fn.getpos("w$")
+    H[2]=math.floor((H[2] + L[2]) / 2)
+    return H
+  end,
+  wL = function()
+    return vim.fn.getpos("w$")
+  end,
+  vi = function()
+    return vim.fn.getpos("v")
+  end,
+}
+
 function Mark:refresh(bufnr, force)
   force = force or false
   bufnr = bufnr or a.nvim_get_current_buf()
@@ -330,7 +360,7 @@ function Mark:refresh(bufnr, force)
 
   -- first, remove all marks that were deleted
   for mark, _ in pairs(self.buffers[bufnr].placed_marks) do
-    if a.nvim_buf_get_mark(bufnr, mark)[1] == 0 then
+    if #mark == 1 and a.nvim_buf_get_mark(bufnr, mark)[1] == 0 then
       self:delete_mark(mark, false)
     end
   end
@@ -365,7 +395,13 @@ function Mark:refresh(bufnr, force)
 
   -- builtin marks
   for _, char in pairs(self.builtin_marks) do
-    pos = vim.fn.getpos("'" .. char)
+    if #char == 1 then
+      pos = vim.fn.getpos("'" .. char)
+    elseif builtin[char] then
+      pos = builtin[char]()
+    else
+      pos = vim.fn.getpos(char)
+    end
     cached_mark = self.buffers[bufnr].placed_marks[char]
     -- check:
     -- mark located in current buffer? (0-9 marks return absolute bufnr instead of 0)
